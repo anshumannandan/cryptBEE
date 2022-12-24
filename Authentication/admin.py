@@ -21,3 +21,7 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(User, UserAdmin)
+admin.site.register(Two_Factor_Verification)
+admin.site.register(Two_Factor_OTP)
+admin.site.register(Email_OTP)
+admin.site.register(PAN_Verification)

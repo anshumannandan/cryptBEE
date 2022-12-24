@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'Authentication',
     'rest_framework_simplejwt',
     'django_password_validators',
+    'django_twilio',
 ]
 
 MIDDLEWARE = [
@@ -211,3 +212,8 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
+TWILIO_DEFAULT_CALLERID = config('TWILIO_DEFAULT_CALLERID')

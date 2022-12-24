@@ -1,10 +1,11 @@
 from django.db.models.base import Model
-from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField
+from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField, IntegerField, DateTimeField
 from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+import datetime
 
 
 class UserManager(BaseUserManager):
@@ -67,6 +68,18 @@ class Two_Factor_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='twofactor')
     phone_number = BigIntegerField(unique=True,
                                    validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
+
+
+class Two_Factor_OTP(Model):
+    phone_number = OneToOneField(Two_Factor_Verification, on_delete=CASCADE, related_name='twofactorotp')
+    otp = IntegerField(blank=True, null=True)
+    created_time = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
+
+
+class Email_OTP(Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name='emailotp')
+    otp = IntegerField(blank=True, null=True)
+    created_time = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
 
 
 class PAN_Verification(Model):
