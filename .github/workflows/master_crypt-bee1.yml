@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'crypt-bee1'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7A2B1EDAAD1F4B2E9C64CDBE15810E00 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B19824E43503440F8CC47170B61965D2 }}
