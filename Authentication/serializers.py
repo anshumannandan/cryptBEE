@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from .models import Two_Factor_Verification, PAN_Verification, User, Two_Factor_OTP
 from .utils import *
-from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -38,21 +37,6 @@ class LoginSerializer(Serializer):
         return validated_data
 
 
-def validOTP(user, otp):
-    try:
-        dbotp = user.twofactor.twofactorotp
-    except:
-        return {'message' : 'Please resend OTP'}
-    if dbotp.created_time + timedelta(minutes=2) < timezone.now():
-        dbotp.delete()
-        return {'message' : 'OTP timed out'}
-    if dbotp.otp == int(otp):
-        dbotp.delete()
-        return 'OK'
-    print(otp, dbotp.otp)
-    return  {'message' : 'OTP Invalid'}
-
-
 class VerifyTwoFactorOTPSerializer(Serializer):
     email = EmailField(write_only = True)
     otp = IntegerField(write_only = True)
@@ -61,12 +45,37 @@ class VerifyTwoFactorOTPSerializer(Serializer):
 
     def validate(self, data):
         user = User.objects.get(email = data['email'])
-        response = validOTP(user, data['otp'])
+        response = validateOTP(user, data['otp'])
         if response == 'OK':
             data['refresh'] = user.refresh
             data['access'] = user.access
             return data
         raise ValidationError(response)
+
+    def create(self, validated_data):
+        return validated_data
+
+
+class SendOTPEmailSerializer(Serializer):
+    email = EmailField(write_only = True)
+
+    def validate(self, data):
+        try:
+            user = User.objects.get(email = data['email'])
+            send_email_otp(user)
+        except:
+            raise ValidationError({"message" : "No such account exists"})
+        return data
+
+    def create(self, validated_data):
+        return validated_data
+
+
+class SendLINKEmailSerializer(Serializer):
+    email = EmailField(write_only = True)
+
+    def validate(self, data):
+        return data
 
     def create(self, validated_data):
         return validated_data

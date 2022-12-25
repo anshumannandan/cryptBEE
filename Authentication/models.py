@@ -85,5 +85,4 @@ class Email_OTP(Model):
 class PAN_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='pan_details')
     pan_number = CharField(unique=True, max_length=10,
-                           validators=[RegexValidator(regex='[A-Z]{5}[0-9]{4}[A-Z]{1}',
-                                                      message='Invalid PAN',),])
+                           validators=[RegexValidator(regex='[A-Z]{5}[0-9]{4}[A-Z]{1}', message='Invalid PAN',),])

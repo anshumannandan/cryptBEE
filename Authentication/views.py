@@ -9,6 +9,22 @@ class LoginView(CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
+
 class VerifyTwoFactorOTPView(CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = VerifyTwoFactorOTPSerializer
+
+
+class SendOTPEmailView(CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = SendOTPEmailSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'message' : 'OTP sent on email'}, status=status.HTTP_200_OK)
+
+
+class SendLINKEmailView(CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = SendOTPEmailSerializer

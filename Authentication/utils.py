@@ -3,6 +3,10 @@ from django.conf import settings
 import random
 from . models import Two_Factor_OTP, Email_OTP
 from django.utils import timezone
+from datetime import timedelta
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 def send_two_factor_otp(mobile):
@@ -16,6 +20,41 @@ def send_two_factor_otp(mobile):
     )
     Two_Factor_OTP(
         phone_number = mobile,
+        otp = otp,
+        created_time = timezone.now()
+    ).save()
+
+
+def validateOTP(user, otp):
+    try:
+        dbotp = user.twofactor.twofactorotp
+    except:
+        return {'message' : 'Please resend OTP'}
+    if dbotp.created_time + timedelta(minutes=2) < timezone.now():
+        dbotp.delete()
+        return {'message' : 'OTP timed out'}
+    if dbotp.otp == int(otp):
+        dbotp.delete()
+        return 'OK'
+    return  {'message' : 'OTP Invalid'}
+
+
+def send_email_otp(user):
+    otp = random.randint(1000, 9999)
+    mailaddress = user.email
+    name = user.name
+    html_content = render_to_string("sendotp.html", {"otp": otp,"name": name})
+    text_content = strip_tags(html_content)
+    email = EmailMultiAlternatives(
+                "CryptBee Password Reset",
+                text_content,
+                settings.EMAIL_HOST,
+                [mailaddress]
+    )
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+    Email_OTP(
+        user = user,
         otp = otp,
         created_time = timezone.now()
     ).save()
