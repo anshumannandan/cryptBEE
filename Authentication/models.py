@@ -1,10 +1,11 @@
 from django.db.models.base import Model
-from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField
+from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField, IntegerField, DateTimeField
 from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+import datetime
 
 
 class UserManager(BaseUserManager):
@@ -31,7 +32,6 @@ class User(AbstractBaseUser):
     is_staff = BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'email']
 
     objects = UserManager()
 
@@ -53,6 +53,16 @@ class User(AbstractBaseUser):
         refresh = RefreshToken.for_user(self)
         return str(refresh.access_token)
 
+    def has_module_perms(self, app_label):
+        "Does the user have permissions to view the app `app_label`?"
+        # Simplest possible answer: Yes, always
+        return True
+
+    def has_perm(self, perm, obj=None):
+        "Does the user have a specific permission?"
+        # Simplest possible answer: Yes, always
+        return self.is_superuser
+
 
 class Two_Factor_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='twofactor')
@@ -60,8 +70,19 @@ class Two_Factor_Verification(Model):
                                    validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
 
 
+class Two_Factor_OTP(Model):
+    phone_number = OneToOneField(Two_Factor_Verification, on_delete=CASCADE, related_name='twofactorotp')
+    otp = IntegerField(blank=True, null=True)
+    created_time = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
+
+
+class Email_OTP(Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name='emailotp')
+    otp = IntegerField(blank=True, null=True)
+    created_time = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
+
+
 class PAN_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='pan_details')
     pan_number = CharField(unique=True, max_length=10,
-                           validators=[RegexValidator(regex='[A-Z]{5}[0-9]{4}[A-Z]{1}',
-                                                      message='Invalid PAN',),])
+                           validators=[RegexValidator(regex='[A-Z]{5}[0-9]{4}[A-Z]{1}', message='Invalid PAN',),])
