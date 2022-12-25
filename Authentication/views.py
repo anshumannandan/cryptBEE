@@ -1,4 +1,4 @@
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 from .serializers import *
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -33,6 +33,19 @@ class VerifyOTPEmailView(CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'message' : 'OTP Verified'}, status=status.HTTP_200_OK)
+
+
+class ResetPasswordView(UpdateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class  = ResetPasswordSerializer
+
+    def get_object(self):
+        email = self.request.data.get('email')
+        return User.objects.get(email=email)
+
+    def patch(self, request, *args, **kwargs):
+        self.update(request,*args, **kwargs)
+        return Response({'messsage':'Password changed successfully'}, status=status.HTTP_200_OK)
 
 
 class SendLINKEmailView(CreateAPIView):

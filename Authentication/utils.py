@@ -1,12 +1,13 @@
 from twilio.rest import Client
 from django.conf import settings
-import random
+import random, re
 from . models import Two_Factor_OTP, Email_OTP
 from django.utils import timezone
 from datetime import timedelta
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.contrib.auth import authenticate
 
 
 def send_two_factor_otp(mobile):
@@ -25,7 +26,7 @@ def send_two_factor_otp(mobile):
     ).save()
 
 
-def validateOTP(user, otp, twofactor=False):
+def validateOTP(user, otp, twofactor=False, resetpass = False):
     if twofactor:
         try:
             otpobject = user.twofactor.twofactorotp
@@ -37,12 +38,13 @@ def validateOTP(user, otp, twofactor=False):
             otpobject = user.emailotp
             validity = 5
         except:
-            return {'message' : 'Please resend OTP'}
+            return {'message' : 'Please resend Email OTP'}
     if otpobject.created_time + timedelta(minutes=validity) < timezone.now():
         otpobject.delete()
         return {'message' : 'OTP timed out'}
     if otpobject.otp == int(otp):
-        otpobject.delete()
+        if twofactor or resetpass:
+            otpobject.delete()
         return 'OK'
     return  {'message' : 'OTP Invalid'}
 
@@ -83,3 +85,15 @@ def resend_otp(user, twofactor = False):
         return False
     otpobject.delete()
     return True
+
+
+def validatePASS(email, password):
+    user = authenticate(email=email, password=password)
+    if user:
+        return {'message' : 'password same as previous one'}
+    reg = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$]).{8,}$"
+    pat = re.compile(reg)
+    mat = re.search(pat, password)
+    if not mat:
+        return {'message' : 'conditions not fulfilled'}
+    return 'OK'

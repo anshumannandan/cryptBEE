@@ -1,9 +1,10 @@
-from rest_framework.serializers import Serializer, EmailField, CharField, BooleanField, IntegerField
+from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from .models import Two_Factor_Verification, PAN_Verification, User, Two_Factor_OTP
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.hashers import make_password
 
 
 class LoginSerializer(Serializer):
@@ -56,7 +57,7 @@ class VerifyTwoFactorOTPSerializer(Serializer):
 
 
 class SendOTPEmailSerializer(Serializer):
-    email = EmailField(write_only = True)
+    email = EmailField()
 
     def validate(self, data):
         try:
@@ -72,8 +73,8 @@ class SendOTPEmailSerializer(Serializer):
 
 
 class VerifyOTPEmailSerializer(Serializer):
-    email = EmailField(write_only = True)
-    otp = IntegerField(write_only = True)
+    email = EmailField()
+    otp = IntegerField()
 
     def validate(self, data):
         user = User.objects.get(email = data['email'])
@@ -84,6 +85,28 @@ class VerifyOTPEmailSerializer(Serializer):
 
     def create(self, validated_data):
         return validated_data
+
+
+class ResetPasswordSerializer(Serializer):
+    email = EmailField(write_only = True)
+    otp = IntegerField(write_only = True)
+    password = CharField()
+
+    def validate(self, data):
+        otpresponse = validateOTP(self.instance, data['otp'])
+        if not otpresponse == 'OK' :
+            raise ValidationError({'message' : 'unauthorised access'})
+        passresponse = validatePASS(self.instance.email, data['password'])
+        print(passresponse)
+        if not passresponse == 'OK':
+            raise ValidationError(passresponse)
+        otpresponse = validateOTP(self.instance, data['otp'], resetpass = True)
+        return data
+
+    def update(self, instance, validated_data):
+        instance.password = make_password(validated_data['password'])
+        instance.save()
+        return instance
 
 
 class SendLINKEmailSerializer(Serializer):
