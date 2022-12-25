@@ -25,16 +25,24 @@ def send_two_factor_otp(mobile):
     ).save()
 
 
-def validateOTP(user, otp):
-    try:
-        dbotp = user.twofactor.twofactorotp
-    except:
-        return {'message' : 'Please resend OTP'}
-    if dbotp.created_time + timedelta(minutes=2) < timezone.now():
-        dbotp.delete()
+def validateOTP(user, otp, twofactor=False):
+    if twofactor:
+        try:
+            otpobject = user.twofactor.twofactorotp
+            validity = 2
+        except:
+            return {'message' : 'Please resend OTP'}
+    else:
+        try:
+            otpobject = user.emailotp
+            validity = 5
+        except:
+            return {'message' : 'Please resend OTP'}
+    if otpobject.created_time + timedelta(minutes=validity) < timezone.now():
+        otpobject.delete()
         return {'message' : 'OTP timed out'}
-    if dbotp.otp == int(otp):
-        dbotp.delete()
+    if otpobject.otp == int(otp):
+        otpobject.delete()
         return 'OK'
     return  {'message' : 'OTP Invalid'}
 
@@ -58,3 +66,20 @@ def send_email_otp(user):
         otp = otp,
         created_time = timezone.now()
     ).save()
+
+
+def resend_otp(user, twofactor = False):
+    if twofactor:
+        try:
+            otpobject = user.twofactor.twofactorotp
+        except:
+            return True
+    else:
+        try:
+            otpobject = user.emailotp
+        except:
+            return True
+    if otpobject.created_time + timedelta(minutes=1) > timezone.now():
+        return False
+    otpobject.delete()
+    return True
