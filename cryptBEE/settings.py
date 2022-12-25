@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'Authentication',
     'rest_framework_simplejwt',
-    'django_password_validators',
+    'django_twilio',
 ]
 
 MIDDLEWARE = [
@@ -117,24 +117,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {'min_length': 8, }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-     {
-        'NAME': 'django_password_validators.password_character_requirements.password_validation.PasswordCharacterValidator',
-        'OPTIONS': {
-             'min_length_digit': 1,
-             'min_length_special': 1,
-             'min_length_lower': 1,
-             'min_length_upper': 1,
-             'special_characters': '~!@#$%^&*()_+{}":;\'[]'
-         }
-    },
+    }
 ]
 
 
@@ -165,6 +154,8 @@ MEDIA_URL = 'media/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'Authentication.User'
 
 
 REST_FRAMEWORK = {
@@ -210,3 +201,16 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
+TWILIO_DEFAULT_CALLERID = config('TWILIO_DEFAULT_CALLERID')
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
