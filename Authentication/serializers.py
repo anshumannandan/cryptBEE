@@ -1,4 +1,4 @@
-from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField
+from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField, UUIDField
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from .models import Two_Factor_Verification, PAN_Verification, User, Two_Factor_OTP
@@ -96,8 +96,7 @@ class ResetPasswordSerializer(Serializer):
         otpresponse = validateOTP(self.instance, data['otp'])
         if not otpresponse == 'OK' :
             raise ValidationError({'message' : 'unauthorised access'})
-        passresponse = validatePASS(self.instance.email, data['password'])
-        print(passresponse)
+        passresponse = validatePASS(data['password'], self.instance.email)
         if not passresponse == 'OK':
             raise ValidationError(passresponse)
         otpresponse = validateOTP(self.instance, data['otp'], resetpass = True)
@@ -110,10 +109,96 @@ class ResetPasswordSerializer(Serializer):
 
 
 class SendLINKEmailSerializer(Serializer):
-    email = EmailField(write_only = True)
+    email = EmailField()
+    password = CharField()
+
+    def validate_email(self, email):
+        if User.objects.filter(email = email).exists():
+            raise ValidationError({'message' : 'User with this email already exists'})
+        return email
+
+    def validate_password(self, password):
+        response = validatePASS(password)
+        if response == 'OK':
+            return password
+        raise ValidationError(response)
+
+
+class VerifyLINKEmailSerializer(Serializer):
+    email = EmailField(required = True)
+    token = UUIDField(required = True)
 
     def validate(self, data):
+        email, token = data['email'], data['token']
+        object = SignUpUser.objects.filter(email = email)
+        if not object.exists():
+            raise ValidationError({'message' : 'Invalid Email'})
+        tempuser = object[0]
+        if not token == tempuser.token:
+            raise ValidationError({'message' : 'Invalid Token'})
+        if tempuser.token_generated_at + timedelta(minutes=15) < timezone.now():
+            tempuser.delete()
+            raise ValidationError({'message' : 'Link Expired'})
+        if tempuser.is_verified:
+            raise ValidationError({'message' : 'Link already used'})
+        return data | {"object" : tempuser}
+
+    def create(self, validated_data):
+        tempuser = validated_data['object']
+        tempuser.is_verified = True
+        tempuser.save()
+        newuser = User(
+            email = tempuser.email,
+            name = tempuser.email.split("@")[0]
+        )
+        newuser.set_password(tempuser.password)
+        newuser.save()
+        return validated_data
+
+
+class CheckVerificationSerializer(Serializer):
+    is_verified = BooleanField(read_only = True, default = False)
+    email = EmailField(write_only = True)
+    password = CharField(write_only = True)
+    access = CharField(read_only = True)
+    refresh = CharField(read_only = True)
+
+    def validate(self, data):
+        object = SignUpUser.objects.filter(email = data['email'], password = data['password'])
+        if not object.exists():
+            raise ValidationError({'message' : 'Unauthorized Access'})
+        if object[0].is_verified:
+            data['is_verified'] = True
+            user = authenticate(email=data['email'], password=data['password'])
+            data['refresh'] = user.refresh
+            data['access'] = user.access
+            object[0].delete()
         return data
 
     def create(self, validated_data):
+        return validated_data
+
+
+class VerifyPANSerializer(ModelSerializer):
+    email = EmailField()
+    name = CharField()
+    
+    class Meta:
+        model = PAN_Verification
+        fields = ['email', 'pan_number', 'name']
+
+    def validate_email(self, email):
+        user = User.objects.filter(email = email)
+        if user.exists():
+            return user[0]
+        raise ValidationError({'message' : 'User with provided Email does not exist'})
+    
+    def create(self, validated_data):
+        holder = User.objects.get(email = validated_data['email'])
+        PAN_Verification(
+            user = holder,
+            pan_number = validated_data['pan_number']
+        ).save()
+        holder.name = validated_data['name']
+        holder.save()
         return validated_data
