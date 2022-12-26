@@ -1,7 +1,7 @@
 from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField, UUIDField
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
-from .models import Two_Factor_Verification, PAN_Verification, User, Two_Factor_OTP
+from .models import Two_Factor_Verification, PAN_Verification, User
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
@@ -26,15 +26,11 @@ class LoginSerializer(Serializer):
             data['two_factor'] = True
             if resend_otp(user, twofactor = True):
                 send_two_factor_otp(mobile)
-            return data
         except ObjectDoesNotExist:
             data['refresh'] = user.refresh
             data['access'] = user.access
             data['two_factor'] = False
         return data
-
-    def create(self, validated_data):
-        return validated_data
 
 
 class VerifyTwoFactorOTPSerializer(Serializer):
@@ -52,9 +48,6 @@ class VerifyTwoFactorOTPSerializer(Serializer):
             return data
         raise ValidationError(response)
 
-    def create(self, validated_data):
-        return validated_data
-
 
 class SendOTPEmailSerializer(Serializer):
     email = EmailField()
@@ -63,13 +56,10 @@ class SendOTPEmailSerializer(Serializer):
         try:
             user = User.objects.get(email = data['email'])
         except ObjectDoesNotExist:
-            raise ValidationError({"message" : "No such account exists"})
+            raise ValidationError({'message':'User not registered'})
         if resend_otp(user):
             send_email_otp(user)
         return data
-
-    def create(self, validated_data):
-        return validated_data
 
 
 class VerifyOTPEmailSerializer(Serializer):
@@ -83,24 +73,24 @@ class VerifyOTPEmailSerializer(Serializer):
             return data
         raise ValidationError(response)
 
-    def create(self, validated_data):
-        return validated_data
-
 
 class ResetPasswordSerializer(Serializer):
     email = EmailField(write_only = True)
     otp = IntegerField(write_only = True)
     password = CharField()
 
-    def validate(self, data):
-        otpresponse = validateOTP(self.instance, data['otp'])
+    def validate_otp(self, otp):
+        otpresponse = validateOTP(self.instance, otp)
         if not otpresponse == 'OK' :
             raise ValidationError({'message' : 'unauthorised access'})
-        passresponse = validatePASS(data['password'], self.instance.email)
+        otpresponse = validateOTP(self.instance, otp, resetpass = True)
+        return otp
+
+    def validate_password(self, password):
+        passresponse = validatePASS(password, self.instance.email)
         if not passresponse == 'OK':
             raise ValidationError(passresponse)
-        otpresponse = validateOTP(self.instance, data['otp'], resetpass = True)
-        return data
+        return password
 
     def update(self, instance, validated_data):
         instance.password = make_password(validated_data['password'])
@@ -122,6 +112,16 @@ class SendLINKEmailSerializer(Serializer):
         if response == 'OK':
             return password
         raise ValidationError(response)
+
+    def validate(self, data):
+        email = data['email']
+        tokenobject = SignUpUser.objects.filter(email = email)
+        if tokenobject.exists():
+            if tokenobject[0].token_generated_at + timedelta(minutes=1) > timezone.now():
+                raise ValidationError({'messsage':'wait for a minute to send another request'})
+            tokenobject[0].delete()
+        send_email_token(data['password'], email)
+        return data
 
 
 class VerifyLINKEmailSerializer(Serializer):
@@ -174,9 +174,6 @@ class CheckVerificationSerializer(Serializer):
             data['access'] = user.access
             object[0].delete()
         return data
-
-    def create(self, validated_data):
-        return validated_data
 
 
 class VerifyPANSerializer(ModelSerializer):
