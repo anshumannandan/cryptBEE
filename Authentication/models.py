@@ -86,3 +86,11 @@ class PAN_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='pan_details')
     pan_number = CharField(unique=True, max_length=10,
                            validators=[RegexValidator(regex='[A-Z]{5}[0-9]{4}[A-Z]{1}', message='Invalid PAN',),])
+
+
+class SignUpUser(Model):
+    email = EmailField(max_length=255, unique=True)
+    password = CharField(max_length=255)
+    key = CharField(max_length=255)
+    is_verified = BooleanField(default=False)
+    token_generated_at = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))

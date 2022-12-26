@@ -96,8 +96,7 @@ class ResetPasswordSerializer(Serializer):
         otpresponse = validateOTP(self.instance, data['otp'])
         if not otpresponse == 'OK' :
             raise ValidationError({'message' : 'unauthorised access'})
-        passresponse = validatePASS(self.instance.email, data['password'])
-        print(passresponse)
+        passresponse = validatePASS(data['password'], self.instance.email)
         if not passresponse == 'OK':
             raise ValidationError(passresponse)
         otpresponse = validateOTP(self.instance, data['otp'], resetpass = True)
@@ -110,10 +109,16 @@ class ResetPasswordSerializer(Serializer):
 
 
 class SendLINKEmailSerializer(Serializer):
-    email = EmailField(write_only = True)
+    email = EmailField()
+    password = CharField()
 
-    def validate(self, data):
-        return data
+    def validate_email(self, email):
+        if User.objects.filter(email = email).exists():
+            raise ValidationError({'message' : 'User with this email already exists'})
+        return email
 
-    def create(self, validated_data):
-        return validated_data
+    def validate_password(self, password):
+        response = validatePASS(password)
+        if response == 'OK':
+            return password
+        raise ValidationError(response)

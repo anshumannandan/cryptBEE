@@ -1,13 +1,14 @@
 from twilio.rest import Client
 from django.conf import settings
 import random, re
-from . models import Two_Factor_OTP, Email_OTP
+from . models import Two_Factor_OTP, Email_OTP, SignUpUser
 from django.utils import timezone
 from datetime import timedelta
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.auth import authenticate
+from cryptography.fernet import Fernet
 
 
 def send_two_factor_otp(mobile):
@@ -87,13 +88,37 @@ def resend_otp(user, twofactor = False):
     return True
 
 
-def validatePASS(email, password):
-    user = authenticate(email=email, password=password)
-    if user:
-        return {'message' : 'password same as previous one'}
+def validatePASS(password, email=None):
+    if email is not None:
+        user = authenticate(email=email, password=password)
+        if user:
+            return {'message' : 'password same as previous one'}
     reg = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$]).{8,}$"
     pat = re.compile(reg)
     mat = re.search(pat, password)
     if not mat:
         return {'message' : 'conditions not fulfilled'}
     return 'OK'
+
+
+def send_email_token(useremail):
+    key = Fernet.generate_key()
+    fernet = Fernet(key)
+    token = str(fernet.encrypt(useremail.encode()))
+    # decMessage = fernet.decrypt(token).decode()
+    link = 'https://vaidic-dodwani.github.io/CryptBee_verifier/?id=' + token
+    html_content = render_to_string("verifylink.html", {"link": link})
+    text_content = strip_tags(html_content)
+    email = EmailMultiAlternatives(
+                "CryptBee Email Verification",
+                text_content,
+                settings.EMAIL_HOST,
+                [useremail]
+    )
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+    SignUpUser(
+        email = useremail,
+        key = key,
+        token_generated_at = timezone.now()
+    ).save()
