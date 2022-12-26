@@ -154,3 +154,51 @@ class VerifyLINKEmailSerializer(Serializer):
         newuser.set_password(tempuser.password)
         newuser.save()
         return validated_data
+
+
+class CheckVerificationSerializer(Serializer):
+    is_verified = BooleanField(read_only = True, default = False)
+    email = EmailField(write_only = True)
+    password = CharField(write_only = True)
+    access = CharField(read_only = True)
+    refresh = CharField(read_only = True)
+
+    def validate(self, data):
+        object = SignUpUser.objects.filter(email = data['email'], password = data['password'])
+        if not object.exists():
+            raise ValidationError({'message' : 'Unauthorized Access'})
+        if object[0].is_verified:
+            data['is_verified'] = True
+            user = authenticate(email=data['email'], password=data['password'])
+            data['refresh'] = user.refresh
+            data['access'] = user.access
+            object[0].delete()
+        return data
+
+    def create(self, validated_data):
+        return validated_data
+
+
+class VerifyPANSerializer(ModelSerializer):
+    email = EmailField()
+    name = CharField()
+    
+    class Meta:
+        model = PAN_Verification
+        fields = ['email', 'pan_number', 'name']
+
+    def validate_email(self, email):
+        user = User.objects.filter(email = email)
+        if user.exists():
+            return user[0]
+        raise ValidationError({'message' : 'User with provided Email does not exist'})
+    
+    def create(self, validated_data):
+        holder = User.objects.get(email = validated_data['email'])
+        PAN_Verification(
+            user = holder,
+            pan_number = validated_data['pan_number']
+        ).save()
+        holder.name = validated_data['name']
+        holder.save()
+        return validated_data

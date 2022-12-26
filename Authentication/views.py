@@ -72,4 +72,15 @@ class VerifyLINKEmailView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = VerifyLINKEmailSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.create(serializer.validated_data)
         return Response({'message' : 'Verified'}, status=status.HTTP_200_OK)
+
+
+class CheckVerificationView(CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = CheckVerificationSerializer
+
+
+class VerifyPANView(CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = VerifyPANSerializer
