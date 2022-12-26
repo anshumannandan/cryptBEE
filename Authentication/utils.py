@@ -8,7 +8,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.auth import authenticate
-from cryptography.fernet import Fernet
+import uuid
 
 
 def send_two_factor_otp(mobile):
@@ -101,12 +101,9 @@ def validatePASS(password, email=None):
     return 'OK'
 
 
-def send_email_token(useremail):
-    key = Fernet.generate_key()
-    fernet = Fernet(key)
-    token = str(fernet.encrypt(useremail.encode()))
-    # decMessage = fernet.decrypt(token).decode()
-    link = 'https://vaidic-dodwani.github.io/CryptBee_verifier/?id=' + token
+def send_email_token(password, useremail):
+    token = uuid.uuid1()
+    link = f'https://vaidic-dodwani.github.io/CryptBee_verifier/?id={token}&email={useremail}'
     html_content = render_to_string("verifylink.html", {"link": link})
     text_content = strip_tags(html_content)
     email = EmailMultiAlternatives(
@@ -119,6 +116,7 @@ def send_email_token(useremail):
     email.send()
     SignUpUser(
         email = useremail,
-        key = key,
+        password = password,
+        token = token,
         token_generated_at = timezone.now()
     ).save()

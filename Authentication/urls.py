@@ -11,5 +11,5 @@ urlpatterns = [
     path('verifyemailOTP/', VerifyOTPEmailView.as_view()),
     path('resetpassword/', ResetPasswordView.as_view()),
     path('sendemailLINK/', SendLINKEmailView.as_view()),
-    path('verifyemailLINK/', SendLINKEmailView.as_view()),
+    path('verifyemailLINK/', VerifyLINKEmailView.as_view()),
 ]

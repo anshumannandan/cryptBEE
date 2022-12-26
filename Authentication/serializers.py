@@ -1,4 +1,4 @@
-from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField
+from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField, UUIDField
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from .models import Two_Factor_Verification, PAN_Verification, User, Two_Factor_OTP
@@ -122,3 +122,35 @@ class SendLINKEmailSerializer(Serializer):
         if response == 'OK':
             return password
         raise ValidationError(response)
+
+
+class VerifyLINKEmailSerializer(Serializer):
+    email = EmailField(required = True)
+    token = UUIDField(required = True)
+
+    def validate(self, data):
+        email, token = data['email'], data['token']
+        object = SignUpUser.objects.filter(email = email)
+        if not object.exists():
+            raise ValidationError({'message' : 'Invalid Email'})
+        tempuser = object[0]
+        if not token == tempuser.token:
+            raise ValidationError({'message' : 'Invalid Token'})
+        if tempuser.token_generated_at + timedelta(minutes=15) < timezone.now():
+            tempuser.delete()
+            raise ValidationError({'message' : 'Link Expired'})
+        if tempuser.is_verified:
+            raise ValidationError({'message' : 'Link already used'})
+        return data | {"object" : tempuser}
+
+    def create(self, validated_data):
+        tempuser = validated_data['object']
+        tempuser.is_verified = True
+        tempuser.save()
+        newuser = User(
+            email = tempuser.email,
+            name = tempuser.email.split("@")[0]
+        )
+        newuser.set_password(tempuser.password)
+        newuser.save()
+        return validated_data

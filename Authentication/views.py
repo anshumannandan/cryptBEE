@@ -62,5 +62,14 @@ class SendLINKEmailView(CreateAPIView):
             if tokenobject.token_generated_at + timedelta(minutes=1) > timezone.now():
                 return Response({'messsage':'wait for a minute to send another request'}, status=status.HTTP_400_BAD_REQUEST)
             tokenobject.delete()
-        send_email_token(email)
+        send_email_token(serializer.data['password'], email)
         return Response({'messsage':'Email sent'}, status=status.HTTP_200_OK)
+
+
+class VerifyLINKEmailView(CreateAPIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = VerifyLINKEmailSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'message' : 'Verified'}, status=status.HTTP_200_OK)

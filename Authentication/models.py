@@ -1,5 +1,5 @@
 from django.db.models.base import Model
-from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField, IntegerField, DateTimeField
+from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField, IntegerField, DateTimeField, UUIDField
 from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -91,6 +91,6 @@ class PAN_Verification(Model):
 class SignUpUser(Model):
     email = EmailField(max_length=255, unique=True)
     password = CharField(max_length=255)
-    key = CharField(max_length=255)
+    token = UUIDField()
     is_verified = BooleanField(default=False)
     token_generated_at = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
