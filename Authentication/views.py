@@ -3,35 +3,43 @@ from .serializers import *
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 
 
-class LoginView(CreateAPIView):
+class LoginView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = LoginSerializer
 
-
-class VerifyTwoFactorOTPView(CreateAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = VerifyTwoFactorOTPSerializer
-
-
-class SendOTPEmailView(CreateAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = SendOTPEmailSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+    def post(self, request, *args, **kwargs):
+        if not User.objects.filter(email = request.data.get('email')).exists():
+            return Response({'message':'User not registered'}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = LoginSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class VerifyTwoFactorOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = VerifyTwoFactorOTPSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'message' : 'OTP Verified'} | serializer.data, status=status.HTTP_200_OK)
+
+
+class SendOTPEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = SendOTPEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         return Response({'message' : 'OTP sent on email'}, status=status.HTTP_200_OK)
 
 
-class VerifyOTPEmailView(CreateAPIView):
+class VerifyOTPEmailView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = VerifyOTPEmailSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = VerifyOTPEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'message' : 'OTP Verified'}, status=status.HTTP_200_OK)
 
@@ -49,20 +57,12 @@ class ResetPasswordView(UpdateAPIView):
         return Response({'messsage':'Password changed successfully'}, status=status.HTTP_200_OK)
 
 
-class SendLINKEmailView(CreateAPIView):
+class SendLINKEmailView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = SendLINKEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.data['email']
-        tokenobject = SignUpUser.objects.filter(email = email)
-        if tokenobject.exists():
-            tokenobject = tokenobject[0]
-            if tokenobject.token_generated_at + timedelta(minutes=1) > timezone.now():
-                return Response({'messsage':'wait for a minute to send another request'}, status=status.HTTP_400_BAD_REQUEST)
-            tokenobject.delete()
-        send_email_token(serializer.data['password'], email)
         return Response({'messsage':'Email sent'}, status=status.HTTP_200_OK)
 
 
@@ -76,9 +76,13 @@ class VerifyLINKEmailView(CreateAPIView):
         return Response({'message' : 'Verified'}, status=status.HTTP_200_OK)
 
 
-class CheckVerificationView(CreateAPIView):
+class CheckVerificationView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = CheckVerificationSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = CheckVerificationSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class VerifyPANView(CreateAPIView):
