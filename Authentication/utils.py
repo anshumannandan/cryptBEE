@@ -1,26 +1,17 @@
-from twilio.rest import Client
-from django.conf import settings
 import random, re
 from . models import Two_Factor_OTP, Email_OTP, SignUpUser
 from django.utils import timezone
 from datetime import timedelta
-from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from django.contrib.auth import authenticate
 import uuid
 from django.contrib.auth.hashers import make_password
+from .tasks import *
 
 
 def send_two_factor_otp(mobile):
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     otp = random.randint(1000, 9999)
-    phone_number = '+91' + str(mobile.phone_number)
-    client.messages.create(
-        body=f"Use the following OTP for CryptBee Two Factor Authentication.\nOTP : {otp}, valid for only 2 minutes",
-        from_=settings.TWILIO_DEFAULT_CALLERID,
-        to=phone_number
-    )
+    send_sms_through_celery.delay(otp, mobile.phone_number)
     Two_Factor_OTP(
         phone_number = mobile,
         otp = otp,
@@ -56,15 +47,7 @@ def send_email_otp(user):
     mailaddress = user.email
     name = user.name
     html_content = render_to_string("sendotp.html", {"otp": otp,"name": name})
-    text_content = strip_tags(html_content)
-    email = EmailMultiAlternatives(
-                "CryptBee Password Reset",
-                text_content,
-                settings.EMAIL_HOST,
-                [mailaddress]
-    )
-    email.attach_alternative(html_content, "text/html")
-    email.send()
+    send_email_through_celery.delay("CryptBee Password Reset", html_content, mailaddress)
     Email_OTP(
         user = user,
         otp = otp,
@@ -106,15 +89,7 @@ def send_email_token(password, useremail):
     token = uuid.uuid1()
     link = f'https://vaidic-dodwani.github.io/CryptBee_verifier/?id={token}&email={useremail}'
     html_content = render_to_string("verifylink.html", {"link": link})
-    text_content = strip_tags(html_content)
-    email = EmailMultiAlternatives(
-                "CryptBee Email Verification",
-                text_content,
-                settings.EMAIL_HOST,
-                [useremail]
-    )
-    email.attach_alternative(html_content, "text/html")
-    email.send()
+    send_email_through_celery.delay("CryptBee Email Verification Link", html_content, useremail)
     SignUpUser(
         email = useremail,
         password = make_password(password),
