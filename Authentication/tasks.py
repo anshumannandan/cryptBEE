@@ -4,6 +4,9 @@ from django.conf import settings
 from django.utils.html import strip_tags
 from twilio.rest import Client
 from django.conf import settings
+from datetime import timedelta
+from django.utils import timezone
+from .models import SignUpUser, Email_OTP, Two_Factor_OTP
 
 
 @shared_task(bind = True)
@@ -29,3 +32,30 @@ def send_sms_through_celery(self, otp, recepient):
         to=f"+91{recepient}"
     )
     return 'SMS SENT'
+
+
+@shared_task(bind=True)
+def delete_sign_up_users(self):
+    users = SignUpUser.objects.all()
+    for user in users:
+      if user.token_generated_at + timedelta(minutes=15) < timezone.now():
+          user.delete()
+    return "DELETED SIGN UP USERS"
+
+
+@shared_task(bind=True)
+def delete_email_otps(self):
+    otps = Email_OTP.objects.all()
+    for otp in otps:
+      if otp.created_time + timedelta(minutes=5) < timezone.now():
+          otp.delete()
+    return "DELETED EMAIL OTPs"
+
+
+@shared_task(bind=True)
+def delete_sms_otps(self):
+    otps = Two_Factor_OTP.objects.all()
+    for otp in otps:
+      if otp.created_time + timedelta(minutes=2) < timezone.now():
+          otp.delete()
+    return "DELETED SMS OTPs"

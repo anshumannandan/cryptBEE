@@ -4,7 +4,6 @@ import os
 from celery import Celery
 from django.conf import settings
 from celery.schedules import crontab
-from datetime import timedelta
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cryptBEE.settings')
 
@@ -15,7 +14,18 @@ app.config_from_object(settings, namespace='CELERY')
 
 #CELERY BEAT SETTINGS
 app.conf.beat_schedule = {
-    
+   'delete_sign_up_users': {
+        'task': 'Authentication.tasks.delete_sign_up_users',
+        'schedule': crontab(minute ='*/15'),
+    },
+   'delete_email_otps': {
+        'task': 'Authentication.tasks.delete_email_otps',
+        'schedule': crontab(minute ='*/5'),
+    },
+   'delete_sms_otps': {
+        'task': 'Authentication.tasks.delete_sms_otps',
+        'schedule': crontab(minute ='*/2'),
+    },
 }
 
 app.autodiscover_tasks()
