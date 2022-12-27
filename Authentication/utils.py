@@ -9,6 +9,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.auth import authenticate
 import uuid
+from django.contrib.auth.hashers import make_password
 
 
 def send_two_factor_otp(mobile):
@@ -116,7 +117,7 @@ def send_email_token(password, useremail):
     email.send()
     SignUpUser(
         email = useremail,
-        password = password,
+        password = make_password(password),
         token = token,
         token_generated_at = timezone.now()
     ).save()

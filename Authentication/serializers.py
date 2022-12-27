@@ -149,10 +149,9 @@ class VerifyLINKEmailSerializer(Serializer):
         tempuser.save()
         newuser = User(
             email = tempuser.email,
-            name = tempuser.email.split("@")[0]
-        )
-        newuser.set_password(tempuser.password)
-        newuser.save()
+            name = tempuser.email.split("@")[0],
+            password = tempuser.password
+        ).save()
         return validated_data
 
 
