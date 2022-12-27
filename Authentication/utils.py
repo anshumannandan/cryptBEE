@@ -28,8 +28,8 @@ def send_two_factor_otp(mobile):
     ).save()
 
 
-def validateOTP(user, otp, twofactor=False, resetpass = False):
-    if twofactor:
+def validateOTP(user, otp, twofactoron=False, resetpass = False):
+    if twofactoron:
         try:
             otpobject = user.twofactor.twofactorotp
             validity = 2
@@ -45,7 +45,7 @@ def validateOTP(user, otp, twofactor=False, resetpass = False):
         otpobject.delete()
         return {'message' : 'OTP timed out'}
     if otpobject.otp == int(otp):
-        if twofactor or resetpass:
+        if twofactoron or resetpass:
             otpobject.delete()
         return 'OK'
     return  {'message' : 'OTP Invalid'}
@@ -98,7 +98,7 @@ def validatePASS(password, email=None):
     pat = re.compile(reg)
     mat = re.search(pat, password)
     if not mat:
-        return {'message' : 'conditions not fulfilled'}
+        return {'message' : 'password conditions not fulfilled'}
     return 'OK'
 
 
