@@ -13,7 +13,8 @@ class LoginSerializer(Serializer):
     two_factor = BooleanField(read_only = True)
     refresh = CharField(read_only = True)
     access = CharField(read_only = True)
-    pan_verify = BooleanField(read_only = True, default=False)
+    pan_verify = BooleanField(read_only = True)
+    name = CharField(read_only = True)
 
     def validate(self,data):
         if not User.objects.filter(email = data['email']).exists():
@@ -21,8 +22,6 @@ class LoginSerializer(Serializer):
         user = authenticate(email=data['email'], password=data['password'])
         if not user:
             raise ValidationError({'message':'Invalid Credentials'})
-        if PAN_Verification.objects.filter(user = user).exists():
-            data['pan_verify'] = True
         try:
             mobile = Two_Factor_Verification.objects.get(user = user)
             data['two_factor'] = True
@@ -32,6 +31,10 @@ class LoginSerializer(Serializer):
             data['refresh'] = user.refresh
             data['access'] = user.access
             data['two_factor'] = False
+            data['pan_verify'] = False
+            if PAN_Verification.objects.filter(user = user).exists():
+                data['pan_verify'] = True
+            data['name'] = user.name
         return data
 
 
@@ -40,6 +43,8 @@ class VerifyTwoFactorOTPSerializer(Serializer):
     otp = IntegerField(write_only = True)
     refresh = CharField(read_only = True)
     access = CharField(read_only = True)
+    pan_verify = BooleanField(read_only = True)
+    name = CharField(read_only = True)
 
     def validate(self, data):
         user = User.objects.filter(email = data['email'])
@@ -50,6 +55,10 @@ class VerifyTwoFactorOTPSerializer(Serializer):
         if response == 'OK':
             data['refresh'] = user.refresh
             data['access'] = user.access
+            data['pan_verify'] = False
+            if PAN_Verification.objects.filter(user = user).exists():
+                data['pan_verify'] = True
+            data['name'] = user.name
             return data
         raise ValidationError(response)
 
@@ -110,7 +119,6 @@ class SendLINKEmailSerializer(Serializer):
     email = EmailField()
     password = CharField()
 
-
     def validate(self, data):
         if User.objects.filter(email = data['email']).exists():
             raise ValidationError({'message' : 'User with this email already exists'})
@@ -121,7 +129,7 @@ class SendLINKEmailSerializer(Serializer):
         tokenobject = SignUpUser.objects.filter(email = email)
         if tokenobject.exists():
             if tokenobject[0].token_generated_at + timedelta(minutes=1) > timezone.now():
-                raise ValidationError({'messsage':'wait for a minute to send another request'})
+                raise ValidationError({'message':'wait for a minute to send another request'})
             tokenobject[0].delete()
         send_email_token(data['password'], email)
         return data
@@ -130,6 +138,7 @@ class SendLINKEmailSerializer(Serializer):
 class VerifyLINKEmailSerializer(Serializer):
     email = EmailField(required = True)
     token = UUIDField(required = True)
+    onapp = BooleanField(required=True)
 
     def validate(self, data):
         email, token = data['email'], data['token']
@@ -150,12 +159,14 @@ class VerifyLINKEmailSerializer(Serializer):
         tempuser = validated_data['object']
         tempuser.is_verified = True
         tempuser.save()
-        User(
+        newuser = User.objects.create_user(
             email = tempuser.email,
             name = tempuser.email.split("@")[0],
             password = tempuser.password
-        ).save()
-        return validated_data
+        )
+        if validated_data['onapp'] :
+            return newuser.tokens()
+        return {}
 
 
 class CheckVerificationSerializer(Serializer):
@@ -183,24 +194,31 @@ class CheckVerificationSerializer(Serializer):
 
 class VerifyPANSerializer(ModelSerializer):
     email = EmailField()
-    name = CharField()
+    name = CharField(required = False, allow_null = True, default = None)
     
     class Meta:
         model = PAN_Verification
         fields = ['email', 'pan_number', 'name']
+        extra_kwargs = {'pan_number': {'required': False, 'allow_null': True, 'default':None}}
 
     def validate(self, data):
         user = User.objects.filter(email = data['email'])
         if user.exists():
+            if data['pan_number'] is None:
+                return data
+            if PAN_Verification.objects.filter(user = user[0]).exists():
+                raise ValidationError({'message':'User already verified'})
             return data
         raise ValidationError({'message':'User not registered'})
     
     def create(self, validated_data):
         holder = User.objects.get(email = validated_data['email'])
-        PAN_Verification(
-            user = holder,
-            pan_number = validated_data['pan_number']
-        ).save()
-        holder.name = validated_data['name']
-        holder.save()
+        if validated_data['pan_number'] is not None:
+            PAN_Verification(
+                user = holder,
+                pan_number = validated_data['pan_number']
+            ).save()
+        if validated_data['name'] is not None:
+            holder.name = validated_data['name']
+            holder.save()
         return validated_data
