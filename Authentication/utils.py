@@ -104,7 +104,7 @@ def validatePASS(password, email=None):
 
 def send_email_token(password, useremail):
     token = uuid.uuid1()
-    link = f'https://vaidic-dodwani.github.io/CryptBee_verifier/?id={token}&email={useremail}'
+    link = f'https://cryptbeeapp.page.link/?link=https%3A%2F%2Fcrybtee.app%3Femail%3D{useremail}%26token%3D{token}%26onapp%3Dtrue&apn=com.example.cryptbee&afl=https%3A%2F%2Fvaidic-dodwani.github.io%2FCryptBee_verifier%2F%3Ftoken%3D{token}%26email%3D{useremail}%26onapp%3Dfalse&ofl=https%3A%2F%2Fvaidic-dodwani.github.io%2FCryptBee_verifier%2F%3Ftoken%3D{token}%26email%3D{useremail}%26onapp%3Dfalse'
     html_content = render_to_string("verifylink.html", {"link": link})
     text_content = strip_tags(html_content)
     email = EmailMultiAlternatives(
