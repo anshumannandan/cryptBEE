@@ -19,8 +19,8 @@ def send_two_factor_otp(mobile):
     ).save()
 
 
-def validateOTP(user, otp, twofactor=False, resetpass = False):
-    if twofactor:
+def validateOTP(user, otp, twofactoron=False, resetpass = False):
+    if twofactoron:
         try:
             otpobject = user.twofactor.twofactorotp
             validity = 2
@@ -36,7 +36,7 @@ def validateOTP(user, otp, twofactor=False, resetpass = False):
         otpobject.delete()
         return {'message' : 'OTP timed out'}
     if otpobject.otp == int(otp):
-        if twofactor or resetpass:
+        if twofactoron or resetpass:
             otpobject.delete()
         return 'OK'
     return  {'message' : 'OTP Invalid'}
@@ -81,13 +81,13 @@ def validatePASS(password, email=None):
     pat = re.compile(reg)
     mat = re.search(pat, password)
     if not mat:
-        return {'message' : 'conditions not fulfilled'}
+        return {'message' : 'password conditions not fulfilled'}
     return 'OK'
 
 
 def send_email_token(password, useremail):
     token = uuid.uuid1()
-    link = f'https://vaidic-dodwani.github.io/CryptBee_verifier/?id={token}&email={useremail}'
+    link = f'https://cryptbeeapp.page.link/?link=https%3A%2F%2Fcrybtee.app%3Femail%3D{useremail}%26token%3D{token}%26onapp%3Dtrue&apn=com.example.cryptbee&afl=https%3A%2F%2Fvaidic-dodwani.github.io%2FCryptBee_verifier%2F%3Ftoken%3D{token}%26email%3D{useremail}%26onapp%3Dfalse&ofl=https%3A%2F%2Fvaidic-dodwani.github.io%2FCryptBee_verifier%2F%3Ftoken%3D{token}%26email%3D{useremail}%26onapp%3Dfalse'
     html_content = render_to_string("verifylink.html", {"link": link})
     send_email_through_celery.delay("CryptBee Email Verification Link", html_content, useremail)
     SignUpUser(

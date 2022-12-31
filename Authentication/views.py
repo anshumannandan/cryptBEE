@@ -10,11 +10,9 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        if not User.objects.filter(email = request.data.get('email')).exists():
-            return Response({'message':'User not registered'}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = LoginSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'message' : ['Login Successful']} |serializer.data, status=status.HTTP_200_OK)
 
 
 class VerifyTwoFactorOTPView(APIView):
@@ -23,7 +21,7 @@ class VerifyTwoFactorOTPView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = VerifyTwoFactorOTPSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'message' : 'OTP Verified'} | serializer.data, status=status.HTTP_200_OK)
+        return Response({'message' : ['OTP Verified']} | serializer.data, status=status.HTTP_200_OK)
 
 
 class SendOTPEmailView(APIView):
@@ -32,7 +30,7 @@ class SendOTPEmailView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SendOTPEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'message' : 'OTP sent on email'}, status=status.HTTP_200_OK)
+        return Response({'message' : ['OTP sent on email']}, status=status.HTTP_200_OK)
 
 
 class VerifyOTPEmailView(APIView):
@@ -41,20 +39,19 @@ class VerifyOTPEmailView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = VerifyOTPEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'message' : 'OTP Verified'}, status=status.HTTP_200_OK)
+        return Response({'message' : ['OTP Verified']}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(UpdateAPIView):
     permission_classes = [AllowAny]
-    serializer_class  = ResetPasswordSerializer
+    serializer_class = ResetPasswordSerializer
 
     def get_object(self):
-        email = self.request.data.get('email')
-        return User.objects.get(email=email)
+        return User.objects.filter(email = self.request.data.get('email'))
 
     def patch(self, request, *args, **kwargs):
         self.update(request,*args, **kwargs)
-        return Response({'messsage':'Password changed successfully'}, status=status.HTTP_200_OK)
+        return Response({'messsage':['Password changed successfully']}, status=status.HTTP_200_OK)
 
 
 class SendLINKEmailView(APIView):
@@ -63,7 +60,7 @@ class SendLINKEmailView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SendLINKEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'messsage':'Email sent'}, status=status.HTTP_200_OK)
+        return Response({'messsage':['Email sent']}, status=status.HTTP_200_OK)
 
 
 class VerifyLINKEmailView(CreateAPIView):
@@ -72,8 +69,8 @@ class VerifyLINKEmailView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = VerifyLINKEmailSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.create(serializer.validated_data)
-        return Response({'message' : 'Verified'}, status=status.HTTP_200_OK)
+        data = serializer.create(serializer.validated_data)
+        return Response({'message' : ['Verified']} | data, status=status.HTTP_200_OK)
 
 
 class CheckVerificationView(APIView):
@@ -87,4 +84,9 @@ class CheckVerificationView(APIView):
 
 class VerifyPANView(CreateAPIView):
     permission_classes = [AllowAny]
-    serializer_class = VerifyPANSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = VerifyPANSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.create(serializer.validated_data)
+        return Response({'message' : ['Verified']} | serializer.data, status=status.HTTP_200_OK)
