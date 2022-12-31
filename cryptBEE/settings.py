@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast = bool)
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://crypt-bee1.azurewebsites.net']
+CSRF_TRUSTED_ORIGINS = ['http://cryptbee.centralindia.cloudapp.azure.com']
 
 
 # Application definition
@@ -86,28 +86,16 @@ WSGI_APPLICATION = 'cryptBEE.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-if config('USE_DEPLOYED_DATABASE', cast = bool):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DEPLOYED_DATABASE_NAME'),
-            'USER': config('DEPLOYED_DATABASE_USER'),
-            'PASSWORD': config('DEPLOYED_DATABASE_PASSWORD'),
-            'HOST': config('DEPLOYED_DATABASE_HOST'),
-            'PORT': '5432',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('LOCAL_DATABASE_NAME'),
-            'USER': config('LOCAL_DATABASE_USER'),
-            'PASSWORD': config('LOCAL_DATABASE_PASSWORD'),
-            'HOST': config('LOCAL_DATABASE_HOST'),
-            'PORT': '5432',
-        }
-    }
+}
 
 
 # Password validation
