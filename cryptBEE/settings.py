@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast = bool)
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://cryptbee.centralindia.cloudapp.azure.com']
+CSRF_TRUSTED_ORIGINS = ['https://crypt-bee.centralindia.cloudapp.azure.com/']
 
 
 # Application definition
