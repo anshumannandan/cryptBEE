@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate
 import uuid
 from django.contrib.auth.hashers import make_password
 from .tasks import *
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
 
 def send_two_factor_otp(mobile):
@@ -25,21 +27,21 @@ def validateOTP(user, otp, twofactoron=False, resetpass = False):
             otpobject = user.twofactor.twofactorotp
             validity = 2
         except:
-            return {'message' : 'Please resend OTP'}
+            return 'Please resend OTP'
     else:
         try:
             otpobject = user.emailotp
             validity = 5
         except:
-            return {'message' : 'Please resend Email OTP'}
+            return 'Please resend Email OTP'
     if otpobject.created_time + timedelta(minutes=validity) < timezone.now():
         otpobject.delete()
-        return {'message' : 'OTP timed out'}
+        return 'OTP timed out'
     if otpobject.otp == int(otp):
         if twofactoron or resetpass:
             otpobject.delete()
         return 'OK'
-    return  {'message' : 'OTP Invalid'}
+    return 'OTP Invalid'
 
 
 def send_email_otp(user):
@@ -76,12 +78,12 @@ def validatePASS(password, email=None):
     if email is not None:
         user = authenticate(email=email, password=password)
         if user:
-            return {'message' : 'password same as previous one'}
+            return 'password same as previous one'
     reg = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$]).{8,}$"
     pat = re.compile(reg)
     mat = re.search(pat, password)
     if not mat:
-        return {'message' : 'password conditions not fulfilled'}
+        return 'password conditions not fulfilled'
     return 'OK'
 
 
@@ -96,3 +98,23 @@ def send_email_token(password, useremail):
         token = token,
         token_generated_at = timezone.now()
     ).save()
+
+
+def normalize_email(email):  
+        email = email or ''
+        try:
+            email_name, domain_part = email.lower().strip().rsplit('@', 1)
+        except ValueError:
+            pass
+        else:
+            email = '@'.join([email_name, domain_part.lower()])
+        return email
+
+
+class CustomError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+
+    def __init__(self, error, code = None):
+        if code is not None:
+            self.status_code = code
+        self.detail = {'message' : [error]}

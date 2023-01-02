@@ -12,7 +12,7 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'message' : ['Login Successful']} |serializer.data, status=status.HTTP_200_OK)
+        return Response({ **{'message' : ['Login Successful']}, **serializer.data}, status=status.HTTP_200_OK)
 
 
 class VerifyTwoFactorOTPView(APIView):
@@ -21,7 +21,7 @@ class VerifyTwoFactorOTPView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = VerifyTwoFactorOTPSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'message' : ['OTP Verified']} | serializer.data, status=status.HTTP_200_OK)
+        return Response({ **{'message' : ['OTP Verified']}, **serializer.data}, status=status.HTTP_200_OK)
 
 
 class SendOTPEmailView(APIView):
@@ -45,9 +45,9 @@ class VerifyOTPEmailView(APIView):
 class ResetPasswordView(UpdateAPIView):
     permission_classes = [AllowAny]
     serializer_class = ResetPasswordSerializer
-
+    
     def get_object(self):
-        return User.objects.filter(email = self.request.data.get('email'))
+        return User.objects.filter(email = normalize_email(self.request.data.get('email')))
 
     def patch(self, request, *args, **kwargs):
         self.update(request,*args, **kwargs)
@@ -70,7 +70,7 @@ class VerifyLINKEmailView(CreateAPIView):
         serializer = VerifyLINKEmailSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.create(serializer.validated_data)
-        return Response({'message' : ['Verified']} | data, status=status.HTTP_200_OK)
+        return Response({ **{'message' : ['Verified']}, **data}, status=status.HTTP_200_OK)
 
 
 class CheckVerificationView(APIView):
@@ -89,4 +89,4 @@ class VerifyPANView(CreateAPIView):
         serializer = VerifyPANSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         serializer.create(serializer.validated_data)
-        return Response({'message' : ['Verified']} | serializer.data, status=status.HTTP_200_OK)
+        return Response({ **{'message' : ['Verified']}, **serializer.data}, status=status.HTTP_200_OK)
