@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django_twilio',
     'django_celery_results',
     'django_celery_beat',
+    'Investments',
 ]
 
 MIDDLEWARE = [

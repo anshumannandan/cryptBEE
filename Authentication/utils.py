@@ -112,9 +112,7 @@ def normalize_email(email):
 
 
 class CustomError(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
 
-    def __init__(self, error, code = None):
-        if code is not None:
-            self.status_code = code
+    def __init__(self, error, code = status.HTTP_400_BAD_REQUEST):
+        self.status_code = code
         self.detail = {'message' : [error]}
