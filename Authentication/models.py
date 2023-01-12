@@ -4,7 +4,7 @@ from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 import datetime
 
 
@@ -73,19 +73,13 @@ class Two_Factor_Verification(Model):
 class Two_Factor_OTP(Model):
     phone_number = OneToOneField(Two_Factor_Verification, on_delete=CASCADE, related_name='twofactorotp')
     otp = IntegerField(blank=True, null=True)
-    created_time = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
+    created_time = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))
 
 
 class Email_OTP(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='emailotp')
     otp = IntegerField(blank=True, null=True)
-    created_time = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
-
-
-class PAN_Verification(Model):
-    user = OneToOneField(User, on_delete=CASCADE, related_name='pan_details')
-    pan_number = CharField(unique=True, max_length=10,
-                           validators=[RegexValidator(regex='[A-Z]{5}[0-9]{4}[A-Z]{1}', message='Invalid PAN',),])
+    created_time = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))
 
 
 class SignUpUser(Model):
@@ -93,4 +87,4 @@ class SignUpUser(Model):
     password = CharField(max_length=255)
     token = UUIDField()
     is_verified = BooleanField(default=False)
-    token_generated_at = DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, 0))
+    token_generated_at = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))
