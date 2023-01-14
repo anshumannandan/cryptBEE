@@ -26,10 +26,10 @@ app.conf.beat_schedule = {
         'task': 'Authentication.tasks.delete_sms_otps',
         'schedule': crontab(minute ='*/2'),
     },
-    'update_coins_data': {
-        'task': 'Investments.tasks.update_coins',
-        'schedule': 20,
-    }
+    # 'update_coins_data': {
+    #     'task': 'Investments.tasks.update_coins',
+    #     'schedule': 20,
+    # }
 }
 
 app.autodiscover_tasks()
