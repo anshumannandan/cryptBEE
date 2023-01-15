@@ -11,9 +11,11 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
 from datetime import timedelta
 import os
+
+import dotenv
+dotenv.read_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast = bool)
+DEBUG = os.environ.get('DEBUG', bool)
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://crypt-bee.centralindia.cloudapp.azure.com/']
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     'django_twilio',
     'django_celery_results',
     'django_celery_beat',
+    'Investments',
 ]
 
 MIDDLEWARE = [
@@ -89,11 +92,11 @@ WSGI_APPLICATION = 'cryptBEE.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USER'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT'),
     }
 }
 
@@ -193,20 +196,21 @@ SIMPLE_JWT = {
 }
 
 
-TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
-TWILIO_DEFAULT_CALLERID = config('TWILIO_DEFAULT_CALLERID')
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_DEFAULT_CALLERID = os.environ.get('TWILIO_DEFAULT_CALLERID')
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 
 #CELERY SETTINGS
+#celery -A cryptBEE.celery worker --pool=solo -l info
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
@@ -217,5 +221,6 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_RESULT_BACKEND = 'django-db'
 
 #CELERY BEAT
+#celery -A cryptBEE beat -l info
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

@@ -1,6 +1,7 @@
 from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField, UUIDField
 from django.contrib.auth import authenticate
-from .models import Two_Factor_Verification, PAN_Verification, User
+from .models import Two_Factor_Verification, User
+from Investments.models import PAN_Verification
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password, check_password
