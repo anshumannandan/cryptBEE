@@ -29,10 +29,10 @@ def RemoveFromCeleryBeat():
 
 async def echo(websocket):
     global connections
+    print('new connection added,', connections+1, 'clients connected')
     if connections == 0 : 
         await AddToCeleryBeat()
     try:
-        await websocket.send('connection established')
         connections += 1
         while True:
             coins = Coin.objects.all()
@@ -43,13 +43,14 @@ async def echo(websocket):
             await asyncio.sleep(20)
     except:
         connections -= 1
+        print(connections, 'clients connected')
         if connections == 0:
             await RemoveFromCeleryBeat()
         return
 
 
 async def main():
-    async with websockets.serve(echo, "localhost", 8001):
+    async with websockets.serve(echo, port = 8001):
         await asyncio.Future()
 
 

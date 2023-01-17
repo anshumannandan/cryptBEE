@@ -1,5 +1,10 @@
 import cryptocompare
 from .models import Coin
+from django.conf import settings
+from Authentication.models import User
+import jwt
+from Authentication.utils import CustomError
+from rest_framework import status
 
 
 def update_coin_database():
@@ -30,3 +35,11 @@ def update_coin_database():
                 Image='cryptocompare.com'+curcoin['ImageUrl'],
                 Description=curcoin['Description'],
             )
+
+
+def update_transaction_history():
+    pass
+
+
+def update_my_holdings():
+    pass
