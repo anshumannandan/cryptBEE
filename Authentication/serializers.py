@@ -221,6 +221,7 @@ class VerifyPANSerializer(ModelSerializer):
                 user = holder,
                 pan_number = validated_data['pan_number']
             ).save()
+
         if validated_data['name'] is not None:
             holder.name = validated_data['name']
             holder.save()

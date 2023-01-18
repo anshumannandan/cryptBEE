@@ -26,6 +26,7 @@ def update_coins(self):
         data.update(result)
     for coin in coins:
         coindata = data[coin.Name]['RAW'][coin.Name]['INR']
+        coin.lastPrice = coin.Price
         coin.Price = coindata['PRICE']
         coin.ChangePct = coindata['CHANGEPCTHOUR']
         coin.save()

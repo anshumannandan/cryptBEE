@@ -1,6 +1,7 @@
 from django.contrib import admin
 from . models import *
 from django.contrib.admin import ModelAdmin
+from django.forms import Textarea
 
 
 class CoinAdmin(ModelAdmin):
@@ -16,11 +17,18 @@ class WalletAdmin(ModelAdmin):
 
 
 class MyHoldingsAdmin(ModelAdmin):
+    formfield_overrides = {
+        ArrayField: {'widget': Textarea(attrs={'rows':20, 'cols':20})},
+    }
     list_display = ['user']
 
 
 class TransactionHistoryAdmin(ModelAdmin):
+    formfield_overrides = {
+        ArrayField: {'widget': Textarea(attrs={'rows':20, 'cols':85})},
+    }
     list_display = ['user']
+
 
 admin.site.register(Coin, CoinAdmin)
 admin.site.register(PAN_Verification, PANAdmin)

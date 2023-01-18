@@ -31,7 +31,10 @@ class BuyCoinSerializer(Serializer):
         if wallet.amount < data['buy_amount']:
             raise CustomError("Insufficient wallet balance", code=status.HTTP_403_FORBIDDEN)
 
-        if not data['price'] == coin[0].Price :
+        if data['buy_amount'] < 1:
+            raise CustomError("Invalid amount, you need to spend atleast INR 1")
+
+        if not ( data['price'] == coin[0].Price or data['price'] == coin[0].lastPrice ):
             raise CustomError("Invalid Price", code=status.HTTP_403_FORBIDDEN)
 
         data['coin'] = coin[0]
@@ -51,13 +54,10 @@ class BuyCoinSerializer(Serializer):
 
         obj = validated_data['user'].transactions
         obj.transactions.append(
-            f'Bought {number_of_coins} {coinname} on {datee()} at {timee()} at price {price}')
+            f' Bought {number_of_coins} {coinname} on {datee()} at {timee()} at price {price}')
         obj.save()
 
         obj = validated_data['user'].my_holdings
-        obj.MyHoldings.append(
-            [[ coinname , number_of_coins]]
-        )
-        obj.save()
+        update_my_holdings(obj, coinname, number_of_coins)
 
         return {'coins' : number_of_coins}
