@@ -37,7 +37,7 @@ def create_referal_code(sender, instance, created, **kwargs):
     if created:
         Wallet.objects.create(user = instance.user)
         MyHoldings.objects.create(user =instance. user,  MyHoldings = [])
-        TransactionHistory.objects.create(user = instance.user)
+        TransactionHistory.objects.create(user = instance.user, transactions = [])
 
 class Wallet(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='wallet')
