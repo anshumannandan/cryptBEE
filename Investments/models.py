@@ -4,7 +4,7 @@ from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from Authentication.models import User
 from django.core.validators import RegexValidator
-from django.contrib.postgres.fields import ArrayField
+from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import string    

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from . models import *
 from django.contrib.admin import ModelAdmin
-from django.forms import Textarea
+from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
+from django_better_admin_arrayfield.forms.widgets import DynamicArrayTextareaWidget
 
 
 class CoinAdmin(ModelAdmin):
@@ -16,16 +17,16 @@ class WalletAdmin(ModelAdmin):
     list_display = ['user', 'amount']
 
 
-class MyHoldingsAdmin(ModelAdmin):
+class MyHoldingsAdmin(ModelAdmin, DynamicArrayMixin):
     formfield_overrides = {
-        ArrayField: {'widget': Textarea(attrs={'rows':20, 'cols':20})},
+        ArrayField: {'widget': DynamicArrayTextareaWidget(attrs={'rows':1, 'cols':30})},
     }
     list_display = ['user']
 
 
-class TransactionHistoryAdmin(ModelAdmin):
+class TransactionHistoryAdmin(ModelAdmin, DynamicArrayMixin):
     formfield_overrides = {
-        ArrayField: {'widget': Textarea(attrs={'rows':20, 'cols':85})},
+        ArrayField: {'widget': DynamicArrayTextareaWidget(attrs={'rows':1, 'cols':90})},
     }
     list_display = ['user']
 
