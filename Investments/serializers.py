@@ -1,5 +1,5 @@
 from .models import *
-from rest_framework.serializers import Serializer, CharField, FloatField
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, FloatField, BooleanField
 from .utils import *
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
@@ -118,3 +118,44 @@ class SellCoinSerializer(Serializer):
         update_my_holdings(obj, coinname, -number_of_coins)
 
         return {'message' : [f'INR {sell_amount} added to your wallet']}
+
+
+class MyHoldingsSerializer(ModelSerializer):
+    class Meta:
+        model = MyHoldings
+        fields = ['MyHoldings']
+
+
+class MyWatchlistSerializer(ModelSerializer):
+    add = BooleanField(write_only=True, default=False)
+    remove = BooleanField(write_only=True, default=False)
+
+    class Meta:
+        model = MyWatchlist
+        fields = ['add', 'remove', 'watchlist']
+        extra_kwargs = {'watchlist': {'required': True}}
+
+    def validate(self, data):
+        if not data['add'] ^ data['remove']:
+            raise CustomError('Specify whether to add or remove')
+        coin = Coin.objects.filter(Name = data['watchlist'][0])
+        if not coin.exists():
+            raise CustomError("Coin not available to trade", code=status.HTTP_404_NOT_FOUND)
+        return data
+        
+
+    def update(self, instance, validated_data):
+        watchlist = instance.watchlist
+        if validated_data['remove']:
+            try:
+                watchlist.remove(validated_data['watchlist'][0])
+            except:
+                pass
+        else:
+            for obj in watchlist:
+                if obj == validated_data['watchlist'][0]:
+                    break
+            else:
+                instance.watchlist.append(validated_data['watchlist'][0])
+        instance.save()
+        return validated_data

@@ -39,6 +39,7 @@ def create_referal_code(sender, instance, created, **kwargs):
         MyHoldings.objects.create(user =instance. user,  MyHoldings = [])
         TransactionHistory.objects.create(user = instance.user, transactions = [])
 
+
 class Wallet(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='wallet')
     amount = FloatField(default=1000)
@@ -60,3 +61,8 @@ class MyHoldings(Model):
 class TransactionHistory(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='transactions')
     transactions = ArrayField(CharField(max_length=255, blank=True), null = True, blank = True)
+
+
+class MyWatchlist(Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name='watchlist')
+    watchlist = ArrayField(CharField(max_length=10, blank=True), null = True, blank = True)

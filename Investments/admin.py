@@ -30,9 +30,16 @@ class TransactionHistoryAdmin(ModelAdmin, DynamicArrayMixin):
     }
     list_display = ['user']
 
+class MyWatchlistAdmin(ModelAdmin, DynamicArrayMixin):
+    formfield_overrides = {
+        ArrayField: {'widget': DynamicArrayTextareaWidget(attrs={'rows':1, 'cols':10})},
+    }
+    list_display = ['user']
+
 
 admin.site.register(Coin, CoinAdmin)
 admin.site.register(PAN_Verification, PANAdmin)
 admin.site.register(Wallet, WalletAdmin)
 admin.site.register(MyHoldings, MyHoldingsAdmin)
 admin.site.register(TransactionHistory, TransactionHistoryAdmin)
+admin.site.register(MyWatchlist, MyWatchlistAdmin)
