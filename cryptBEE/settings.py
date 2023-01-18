@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'Investments',
+    'django.contrib.postgres',
+    'django_better_admin_arrayfield',
 ]
 
 MIDDLEWARE = [
