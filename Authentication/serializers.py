@@ -25,6 +25,8 @@ class LoginSerializer(Serializer):
             raise CustomError('Invalid Credentials')
         try:
             mobile = Two_Factor_Verification.objects.get(user = user)
+            if not mobile.enabled:
+                raise ObjectDoesNotExist
             data['two_factor'] = True
             if resend_otp(user, twofactor = True):
                 send_two_factor_otp(mobile)
@@ -256,3 +258,62 @@ class ChangePasswordSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         return {'message':['Password changed successfully']}
+
+
+# class EnableTwoFactorSerializer(Serializer):
+#     otp = IntegerField(default = None, write_only=True)
+
+#     class Meta:
+#         model = Two_Factor_Verification
+#         fields = ['phone_number', 'otp']
+#         extra_kwargs = {'phone_number': {'default': None, 'write_only': True}}
+
+#     def validate(self, data):
+#         user = self.context['request'].user
+
+#         try:
+#             obj = user.twofactor
+#             data['create new'] = False
+#             data['obj'] = obj
+#         except:
+#             data['create new'] = True
+#             print(data, self.model) 
+
+#             if data['phone_number'] is None:
+#                 raise CustomError("phone_number is required")
+#             return data
+
+#         if obj.verified:
+#             return data
+
+#         if data['otp'] is None or data['phone_number'] is None:
+#             raise CustomError("phone_number and otp are required")
+
+
+#         return data
+
+#     def create(self, validated_data):
+#         if validated_data['create new']:
+#             obj = self.model.objects.create(
+#                 user = self.context['request'].user,
+#                 phone_number = validated_data['phone_number']
+#             )
+#             send_two_factor_otp(obj)
+
+#         obj = validated_data['obj']
+#         obj.enabled = True
+#         obj.verified = True
+#         obj.save()
+#         return validated_data
+
+
+# class DisableTwoFactorSerializer(ModelSerializer):
+#     class Meta:
+#         model = Two_Factor_Verification
+#         fields = [' ']
+ 
+#     def validate(self, attrs):
+#         return super().validate(attrs)
+
+#     def create(self, validated_data):
+#         return super().create(validated_data)

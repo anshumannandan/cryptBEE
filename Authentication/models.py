@@ -68,6 +68,8 @@ class Two_Factor_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='twofactor')
     phone_number = BigIntegerField(unique=True,
                                    validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
+    enabled = BooleanField(default=False)
+    verified = BooleanField(default=False)
 
 
 class Two_Factor_OTP(Model):

@@ -98,3 +98,17 @@ class ChangePasswordView(UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+# class EnableTwoFactorView(CreateAPIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = EnableTwoFactorSerializer(data = request.data, context={'request': request})
+#         serializer.is_valid(raise_exception=True)
+#         serializer.create(serializer.validated_data)
+#         return Response({'message' : ['Two Factor Verification Enabled']}, status=status.HTTP_202_ACCEPTED)
+
+# class DisableTwoFactorView(CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    # serializer_class = DisableTwoFactorSerializer
