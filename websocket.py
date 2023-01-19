@@ -58,7 +58,7 @@ async def socket(websocket):
             coins = Coin.objects.all()
             data = []
             async for coin in coins:
-                data.append({'Name': coin.Name, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
+                data.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
             await websocket.send(json.dumps({'data': data}))
             await asyncio.sleep(20)
     except:

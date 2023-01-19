@@ -143,16 +143,14 @@ class MyWatchlistSerializer(ModelSerializer):
             raise CustomError("Coin not available to trade", code=status.HTTP_404_NOT_FOUND)
         return data
         
-
     def update(self, instance, validated_data):
-        watchlist = instance.watchlist
         if validated_data['remove']:
             try:
-                watchlist.remove(validated_data['watchlist'][0])
+                instance.watchlist.remove(validated_data['watchlist'][0])
             except:
                 pass
         else:
-            for obj in watchlist:
+            for obj in instance.watchlist:
                 if obj == validated_data['watchlist'][0]:
                     break
             else:

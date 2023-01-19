@@ -226,3 +226,33 @@ class VerifyPANSerializer(ModelSerializer):
             holder.name = validated_data['name']
             holder.save()
         return validated_data
+
+
+class ChangePasswordSerializer(ModelSerializer):
+    newpassword = CharField(max_length=128, write_only = True, required = True)
+
+    class Meta:
+        model = User
+        fields = ['password', 'newpassword']
+        extra_kwargs = {'password': {'required': True, 'write_only': True}}
+
+    def validate(self, data):
+        if not check_password(data['password'], self.instance.password):
+            raise CustomError("Incorrect previous password", code=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if check_password(data['newpassword'], self.instance.password):
+            raise CustomError("Password same as previous password", code=status.HTTP_406_NOT_ACCEPTABLE)
+
+        passresponse = validatePASS(data['newpassword'])
+        if not passresponse == 'OK':
+            raise CustomError(passresponse)
+
+        return data
+
+    def update(self, instance, validated_data):
+        instance.password = make_password(validated_data['newpassword'])
+        instance.save()
+        return validated_data
+
+    def to_representation(self, instance):
+        return {'message':['Password changed successfully']}

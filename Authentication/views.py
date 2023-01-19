@@ -90,3 +90,11 @@ class VerifyPANView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.create(serializer.validated_data)
         return Response({ **{'message' : ['Verified']}, **serializer.data}, status=status.HTTP_200_OK)
+
+
+class ChangePasswordView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    def get_object(self):
+        return self.request.user

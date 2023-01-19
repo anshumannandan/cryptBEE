@@ -14,4 +14,5 @@ urlpatterns = [
     path('verifyemailLINK/', VerifyLINKEmailView.as_view()),
     path('checkverification/', CheckVerificationView.as_view()),
     path('verifyPAN/', VerifyPANView.as_view()),
+    path('changepassword/', ChangePasswordView.as_view()),
 ]
