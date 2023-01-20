@@ -18,7 +18,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 def AddToCeleryBeat():
     task = PeriodicTask.objects.filter(name = 'update_coins_data')
     if not task.exists():
-        schedule, created = IntervalSchedule.objects.get_or_create(every = 20, period = IntervalSchedule.SECONDS)
+        schedule, created = IntervalSchedule.objects.get_or_create(every = 10, period = IntervalSchedule.SECONDS)
         task = PeriodicTask.objects.create(interval = schedule, name = 'update_coins_data', task = 'Investments.tasks.update_coins')
 
 
@@ -52,6 +52,8 @@ async def socket(websocket):
 
     if connections == 1:
         await AddToCeleryBeat()
+
+    await asyncio.sleep(1)
     
     try:
         while True:
@@ -60,7 +62,7 @@ async def socket(websocket):
             async for coin in coins:
                 data.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
             await websocket.send(json.dumps({'data': data}))
-            await asyncio.sleep(20)
+            await asyncio.sleep(10)
     except:
         connections -= 1
         print('client disconnected,', connections, 'clients connected')
