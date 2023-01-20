@@ -1,4 +1,4 @@
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, ListAPIView
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework import status
@@ -47,3 +47,9 @@ class MyWatchlistView(RetrieveUpdateAPIView):
             obj.watchlist = []
             obj.save()
         return obj
+
+
+class NEWSView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NEWSSerializer
+    queryset = News.objects.all()

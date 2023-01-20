@@ -4,6 +4,7 @@ import time
 import queue
 from threading import Thread
 from .models import Coin
+from .web_scrapping import web_scrap_news
 
 
 @shared_task(bind=True)
@@ -31,3 +32,9 @@ def update_coins(self):
         coin.ChangePct = coindata['CHANGEPCTHOUR']
         coin.save()
     return 'COINS UPDATED'
+
+
+@shared_task(bind=True)
+def update_news(self):
+    web_scrap_news()
+    return 'NEWS UPDATED'

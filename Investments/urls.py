@@ -7,4 +7,5 @@ urlpatterns = [
     path('sell/', SellCoinView.as_view()),
     path('myholdings/', GETMyHoldingsView.as_view()),
     path('mywatchlist/', MyWatchlistView.as_view()),
+    path('news/', NEWSView.as_view()),
 ]

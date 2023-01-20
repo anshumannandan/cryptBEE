@@ -62,7 +62,7 @@ async def socket(websocket):
             async for coin in coins:
                 data.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
             await websocket.send(json.dumps({'data': data}))
-            await asyncio.sleep(10)
+            await asyncio.sleep(1)
     except:
         connections -= 1
         print('client disconnected,', connections, 'clients connected')

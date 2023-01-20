@@ -66,3 +66,9 @@ class TransactionHistory(Model):
 class MyWatchlist(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='watchlist')
     watchlist = ArrayField(CharField(max_length=10, blank=True), null = True, blank = True)
+
+
+class News(Model):
+    headline = CharField(max_length=255)
+    news = URLField()
+    image = URLField()

@@ -157,3 +157,9 @@ class MyWatchlistSerializer(ModelSerializer):
                 instance.watchlist.append(validated_data['watchlist'][0])
         instance.save()
         return validated_data
+
+
+class NEWSSerializer(ModelSerializer):
+    class Meta:
+        model = News
+        exclude = ['id']
