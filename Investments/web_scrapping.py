@@ -35,3 +35,39 @@ def web_scrap_news():
         newslist.append([news_headline, news_link, image_url])
 
     return newslist
+
+
+def web_scrap_coins():
+
+    url = 'https://www.binance.com/en/markets'
+    requestcontent = requests.get(url)
+    htmlcontent = requestcontent.content
+    soup = BeautifulSoup(htmlcontent, 'html.parser')
+
+    coinslist = []
+
+    for soup in soup.find_all('div', class_='css-leyy1t'):
+
+        # COIN ABBREVIATION
+        name_a = soup.find('a', class_='css-t4pmgu')
+        name_d = name_a.find('div', class_='css-y492if')
+        name = name_d.find('div', class_='css-1x8dg53')
+        name = name.text
+
+        # COIN PRICE
+        price_d = soup.find('div', class_='css-ydcgk2')
+        price_d = price_d.find('div', class_='css-ovtrou')
+        price = price_d.string
+        price = float(price.replace(',', '')[1:])
+
+        # PRICE CHANGE PCT
+        pct_d = soup.find('div', class_='css-18yakpx')
+        pct = pct_d.find('div', class_='css-1vgqjs4')
+        try:
+            change_pct = float(pct.text[1:-1])
+        except:
+            change_pct = 0.0
+
+        coinslist.append([name, price, change_pct])
+
+    return coinslist

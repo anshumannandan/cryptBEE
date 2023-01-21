@@ -29,7 +29,7 @@ app.conf.beat_schedule = {
     # 'update_coins_data': {
     #     'task': 'Investments.tasks.update_coins',
     #     'schedule': 20,
-    # }
+    # },
     'update_news_database': {
         'task': 'Investments.tasks.update_news',
         'schedule': crontab(hour ='*/3'),

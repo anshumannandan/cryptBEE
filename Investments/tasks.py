@@ -4,7 +4,7 @@ import time
 import queue
 from threading import Thread
 from .models import Coin, News
-from .web_scrapping import web_scrap_news
+from .web_scrapping import web_scrap_news, web_scrap_coins
 
 
 @shared_task(bind=True)
@@ -31,6 +31,19 @@ def update_coins(self):
         coin.Price = coindata['PRICE']
         coin.ChangePct = coindata['CHANGEPCTHOUR']
         coin.save()
+    # coinslist = web_scrap_coins()
+    # for coin in coinslist:
+    #     try:
+    #         cur_coin = Coin.objects.get(Name = coin[0])
+    #         cur_coin.Price = coin[1]
+    #         cur_coin.ChangePct = coin[2]
+    #         cur_coin.save()
+    #     except:
+    #         Coin.objects.create(
+    #             Name = coin[0],
+    #             Price = coin[1],
+    #             ChangePct = coin[2]
+    #         )
     return 'COINS UPDATED'
 
 
