@@ -3,7 +3,7 @@ import cryptocompare
 import time
 import queue
 from threading import Thread
-from .models import Coin
+from .models import Coin, News
 from .web_scrapping import web_scrap_news
 
 
@@ -36,5 +36,12 @@ def update_coins(self):
 
 @shared_task(bind=True)
 def update_news(self):
-    web_scrap_news()
+    News.objects.all().delete()
+    newslist = web_scrap_news()
+    for news in newslist:
+        News.objects.create(
+            headline = news[0],
+            news = news[1],
+            image = news[2]
+        )
     return 'NEWS UPDATED'

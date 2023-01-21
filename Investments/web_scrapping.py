@@ -1,16 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 import base64
-from .models import News 
 
 def web_scrap_news():
-    News.objects.all().delete()
 
     url = 'https://cryptopotato.com/crypto-news/'
     requestcontent = requests.get(url)
     htmlcontent = requestcontent.content
-
     soup = BeautifulSoup(htmlcontent, 'html.parser')
+
+    newslist = []
+
     for u_list in soup.find_all('li' ,class_='rpwe-li'):
         for list_element in u_list.contents:
             for tag in list_element:
@@ -32,8 +32,6 @@ def web_scrap_news():
                         news_headline = tag.string
                     except:
                         pass
-        News.objects.create(
-            headline = news_headline,
-            news = news_link,
-            image = image_url
-        )
+        newslist.append([news_headline, news_link, image_url])
+
+    return newslist
