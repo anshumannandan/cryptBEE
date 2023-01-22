@@ -13,8 +13,6 @@ class LoginSerializer(Serializer):
     two_factor = BooleanField(read_only = True)
     refresh = CharField(read_only = True)
     access = CharField(read_only = True)
-    pan_verify = BooleanField(read_only = True)
-    name = CharField(read_only = True)
 
     def validate(self,data):
         inemail = normalize_email(data['email'])
@@ -34,10 +32,6 @@ class LoginSerializer(Serializer):
             data['refresh'] = user.refresh
             data['access'] = user.access
             data['two_factor'] = False
-            data['pan_verify'] = False
-            if PAN_Verification.objects.filter(user = user).exists():
-                data['pan_verify'] = True
-            data['name'] = user.name
         return data
 
 
@@ -46,8 +40,6 @@ class VerifyTwoFactorOTPSerializer(Serializer):
     otp = IntegerField(write_only = True)
     refresh = CharField(read_only = True)
     access = CharField(read_only = True)
-    pan_verify = BooleanField(read_only = True)
-    name = CharField(read_only = True)
 
     def validate(self, data):
         user = User.objects.filter(email = normalize_email(data['email']))
@@ -58,10 +50,6 @@ class VerifyTwoFactorOTPSerializer(Serializer):
         if response == 'OK':
             data['refresh'] = user.refresh
             data['access'] = user.access
-            data['pan_verify'] = False
-            if PAN_Verification.objects.filter(user = user).exists():
-                data['pan_verify'] = True
-            data['name'] = user.name
             return data
         raise CustomError(response)
 
@@ -324,3 +312,33 @@ class ProfilePictureSerializer(ModelSerializer):
         model = User
         fields = ['profile_picture']
         extra_kwargs = {'profile_picture': {'required': True}}
+
+
+class UserDetailsSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email', 'name', 'profile_picture']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        data['two_factor_verification'] = False
+        try:
+            obj = instance.twofactor
+            if obj.verified:
+                if obj.enabled:
+                    data['two_factor_verification'] = True
+                data['phone_number'] = obj.phone_number
+        except:
+            pass
+
+        try:
+            obj = instance.pan_details
+            data['pan_verification'] = True
+            data['pan_number'] = obj.pan_number
+            data['walltet'] = instance.wallet.amount
+        except:
+            data['pan_verification'] = False
+
+
+        return data

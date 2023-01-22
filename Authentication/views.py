@@ -1,4 +1,4 @@
-from rest_framework.generics import CreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import CreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from .serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -134,3 +134,11 @@ class ProfilePictureView(RetrieveUpdateDestroyAPIView):
         user.profile_picture = 'profile.jpg'
         user.save()
         return Response({'message' : 'Profile Picture Deleted'})
+
+
+class UserDetailsView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserDetailsSerializer
+
+    def get_object(self):
+        return self.request.user
