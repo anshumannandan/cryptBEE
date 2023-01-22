@@ -7,8 +7,8 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 import jwt
 
-# import logging
-# logging.basicConfig(format="%(message)s", level=logging.DEBUG)
+import logging
+logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cryptBEE.settings')
 django.setup()
@@ -40,11 +40,26 @@ def holdings_data(user):
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
             holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1], "Price" : holding[2]})
-    except: pass
+    except:
+        pass
     return holdings
 
 
-async def coins_data(websocket, user):
+@sync_to_async
+def particular_holdings_data(user, reqd_coin):
+    holdings = []
+    try:
+        for holding in user.my_holdings.MyHoldings:
+            coin = Coin.objects.get(Name = holding[0])
+            if reqd_coin == coin:
+                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1], "Price" : holding[2]})
+                break
+    except:
+        pass
+    return holdings
+
+
+async def socket(websocket, user):
     try:
         coins = Coin.objects.all()
         while True:
@@ -58,21 +73,44 @@ async def coins_data(websocket, user):
         return
 
 
+async def single_socket(websocket, user, coin):
+    try:
+        while True:
+            data = {'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image}
+            holdings = await particular_holdings_data(user, coin)
+            await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
+            await asyncio.sleep(10)
+    except websockets.ConnectionClosedOK:
+        return
+
+
+@sync_to_async
+def get_coin(name):
+    try:
+        return Coin.objects.get(Name = name)
+    except:
+        return False
+
+
 async def handler(websocket, user):
-    global connected
-    connected.add(websocket)
-    if len(connected) == 1:
-        await AddToCeleryBeat()
-    await coins_data(websocket, user)
-    connected.remove(websocket)
-    if len(connected) == 0:
-        await RemoveFromCeleryBeat()
-    # await websocket.send('authorised, enter ALL or name of the coin')
-    # req = await websocket.recv()
-    # if req == 'ALL':
-    #     await socket(websocket)
-    # else:
-    #     return
+    # global connected
+    # connected.add(websocket)
+    # if len(connected) == 1:
+    #     await AddToCeleryBeat()
+    # await socket(websocket, user)
+    # connected.remove(websocket)
+    # if len(connected) == 0:
+    #     await RemoveFromCeleryBeat()
+    await websocket.send('authorised, enter ALL or name of the coin')
+    req = await websocket.recv()
+    if req == 'ALL':
+        await socket(websocket, user)
+    else:
+        coin = await get_coin(req)
+        if not coin:
+            await websocket.send('invalid request')
+        await single_socket(websocket, user, coin)
+
 
 
 @sync_to_async
