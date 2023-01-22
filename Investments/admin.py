@@ -9,14 +9,6 @@ class CoinAdmin(ModelAdmin):
     list_display = ['Name', 'FullName', 'Price', 'ChangePct']
 
 
-class PANAdmin(ModelAdmin):
-    list_display = ['user', 'pan_number']
-
-
-class WalletAdmin(ModelAdmin):
-    list_display = ['user', 'amount']
-
-
 class MyHoldingsAdmin(ModelAdmin, DynamicArrayMixin):
     formfield_overrides = {
         ArrayField: {'widget': DynamicArrayTextareaWidget(attrs={'rows':1, 'cols':70})},
@@ -51,8 +43,6 @@ class SellAdmin(ModelAdmin):
 
 
 admin.site.register(Coin, CoinAdmin)
-admin.site.register(PAN_Verification, PANAdmin)
-admin.site.register(Wallet, WalletAdmin)
 admin.site.register(MyHoldings, MyHoldingsAdmin)
 admin.site.register(TransactionHistory, TransactionHistoryAdmin)
 admin.site.register(MyWatchlist, MyWatchlistAdmin)
