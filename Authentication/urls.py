@@ -18,4 +18,5 @@ urlpatterns = [
     # path('enabletwofactor/', EnableTwoFactorView.as_view()),
     # path('disabletwofactor/', DisableTwoFactorView.as_view()),
     path('profile_picture/', ProfilePictureView.as_view()),
+    path('details/', UserDetailsView.as_view()),
 ]
