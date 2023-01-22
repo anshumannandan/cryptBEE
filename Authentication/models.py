@@ -1,5 +1,6 @@
 from django.db.models.base import Model
 from django.db.models.fields import BooleanField, EmailField, BigIntegerField, CharField, IntegerField, DateTimeField, UUIDField
+from django.db.models import ImageField
 from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -27,6 +28,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     email = EmailField(max_length=255, unique=True)
     name = CharField(max_length=255)
+    profile_picture = ImageField(upload_to='', default='profile.jpg')
 
     is_superuser = BooleanField(default=False)
     is_staff = BooleanField(default=False)
@@ -68,6 +70,8 @@ class Two_Factor_Verification(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='twofactor')
     phone_number = BigIntegerField(unique=True,
                                    validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
+    enabled = BooleanField(default=False)
+    verified = BooleanField(default=False)
 
 
 class Two_Factor_OTP(Model):

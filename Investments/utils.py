@@ -33,7 +33,7 @@ def update_coin_database():
             )
 
 
-def update_my_holdings(obj, coinname, number_of_coins):
+def update_my_holdings(obj, coinname, number_of_coins, price):
     found = False
     updated_holdings = []
     for i in obj.MyHoldings:
@@ -41,10 +41,10 @@ def update_my_holdings(obj, coinname, number_of_coins):
             found = True
             if float(i[1]) + number_of_coins == 0:
                 continue
-            updated_holdings.append([i[0], float(i[1]) + number_of_coins])
+            updated_holdings.append([i[0], float(i[1]) + number_of_coins, price])
         else:
             updated_holdings.append(i)
     if not found : 
-        updated_holdings.append([coinname, number_of_coins])
+        updated_holdings.append([coinname, number_of_coins, price])
     obj.MyHoldings = updated_holdings
     obj.save()

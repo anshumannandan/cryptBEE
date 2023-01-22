@@ -25,6 +25,8 @@ class LoginSerializer(Serializer):
             raise CustomError('Invalid Credentials')
         try:
             mobile = Two_Factor_Verification.objects.get(user = user)
+            if not mobile.enabled:
+                raise ObjectDoesNotExist
             data['two_factor'] = True
             if resend_otp(user, twofactor = True):
                 send_two_factor_otp(mobile)
@@ -226,3 +228,99 @@ class VerifyPANSerializer(ModelSerializer):
             holder.name = validated_data['name']
             holder.save()
         return validated_data
+
+
+class ChangePasswordSerializer(ModelSerializer):
+    newpassword = CharField(max_length=128, write_only = True, required = True)
+
+    class Meta:
+        model = User
+        fields = ['password', 'newpassword']
+        extra_kwargs = {'password': {'required': True, 'write_only': True}}
+
+    def validate(self, data):
+        if not check_password(data['password'], self.instance.password):
+            raise CustomError("Incorrect previous password", code=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if check_password(data['newpassword'], self.instance.password):
+            raise CustomError("Password same as previous password", code=status.HTTP_406_NOT_ACCEPTABLE)
+
+        passresponse = validatePASS(data['newpassword'])
+        if not passresponse == 'OK':
+            raise CustomError(passresponse)
+
+        return data
+
+    def update(self, instance, validated_data):
+        instance.password = make_password(validated_data['newpassword'])
+        instance.save()
+        return validated_data
+
+    def to_representation(self, instance):
+        return {'message':['Password changed successfully']}
+
+
+# class EnableTwoFactorSerializer(Serializer):
+#     otp = IntegerField(default = None, write_only=True)
+
+#     class Meta:
+#         model = Two_Factor_Verification
+#         fields = ['phone_number', 'otp']
+#         extra_kwargs = {'phone_number': {'default': None, 'write_only': True}}
+
+#     def validate(self, data):
+#         user = self.context['request'].user
+
+#         try:
+#             obj = user.twofactor
+#             data['create new'] = False
+#             data['obj'] = obj
+#         except:
+#             data['create new'] = True
+#             print(data, self.model) 
+
+#             if data['phone_number'] is None:
+#                 raise CustomError("phone_number is required")
+#             return data
+
+#         if obj.verified:
+#             return data
+
+#         if data['otp'] is None or data['phone_number'] is None:
+#             raise CustomError("phone_number and otp are required")
+
+
+#         return data
+
+#     def create(self, validated_data):
+#         if validated_data['create new']:
+#             obj = self.model.objects.create(
+#                 user = self.context['request'].user,
+#                 phone_number = validated_data['phone_number']
+#             )
+#             send_two_factor_otp(obj)
+
+#         obj = validated_data['obj']
+#         obj.enabled = True
+#         obj.verified = True
+#         obj.save()
+#         return validated_data
+
+
+# class DisableTwoFactorSerializer(ModelSerializer):
+#     class Meta:
+#         model = Two_Factor_Verification
+#         fields = [' ']
+ 
+#     def validate(self, attrs):
+#         return super().validate(attrs)
+
+#     def create(self, validated_data):
+#         return super().create(validated_data)
+
+
+class ProfilePictureSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['profile_picture']
+        extra_kwargs = {'profile_picture': {'required': True}}

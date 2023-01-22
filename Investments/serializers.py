@@ -1,5 +1,5 @@
 from .models import *
-from rest_framework.serializers import Serializer, CharField, FloatField
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, FloatField, BooleanField
 from .utils import *
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
@@ -34,7 +34,7 @@ class BuyCoinSerializer(Serializer):
         if data['buy_amount'] < 1:
             raise CustomError("Invalid amount, you need to spend atleast INR 1")
 
-        if not ( data['price'] == coin[0].Price or data['price'] == coin[0].lastPrice ):
+        if not ( data['price'] == coin[0].Price):
             raise CustomError("Invalid Price", code=status.HTTP_403_FORBIDDEN)
 
         data['coin'] = coin[0]
@@ -58,7 +58,7 @@ class BuyCoinSerializer(Serializer):
         obj.save()
 
         obj = validated_data['user'].my_holdings
-        update_my_holdings(obj, coinname, number_of_coins)
+        update_my_holdings(obj, coinname, number_of_coins, price)
 
         return {'message' : [f'{number_of_coins} {coinname} added to your holdings']}
 
@@ -118,3 +118,55 @@ class SellCoinSerializer(Serializer):
         update_my_holdings(obj, coinname, -number_of_coins)
 
         return {'message' : [f'INR {sell_amount} added to your wallet']}
+
+
+class MyHoldingsSerializer(ModelSerializer):
+    class Meta:
+        model = MyHoldings
+        fields = ['MyHoldings']
+
+    def to_representation(self, instance):
+        response = []
+        for holding in instance.MyHoldings:
+            coin = Coin.objects.get(Name = holding[0])
+            response.append([coin.Name, coin.Image, holding[1], holding[2]])
+        return {"MyHoldings" : response}
+
+
+class MyWatchlistSerializer(ModelSerializer):
+    add = BooleanField(write_only=True, default=False)
+    remove = BooleanField(write_only=True, default=False)
+
+    class Meta:
+        model = MyWatchlist
+        fields = ['add', 'remove', 'watchlist']
+        extra_kwargs = {'watchlist': {'required': True}}
+
+    def validate(self, data):
+        if not data['add'] ^ data['remove']:
+            raise CustomError('Specify whether to add or remove')
+        coin = Coin.objects.filter(Name = data['watchlist'][0])
+        if not coin.exists():
+            raise CustomError("Coin not available to trade", code=status.HTTP_404_NOT_FOUND)
+        return data
+        
+    def update(self, instance, validated_data):
+        if validated_data['remove']:
+            try:
+                instance.watchlist.remove(validated_data['watchlist'][0])
+            except:
+                pass
+        else:
+            for obj in instance.watchlist:
+                if obj == validated_data['watchlist'][0]:
+                    break
+            else:
+                instance.watchlist.append(validated_data['watchlist'][0])
+        instance.save()
+        return validated_data
+
+
+class NEWSSerializer(ModelSerializer):
+    class Meta:
+        model = News
+        exclude = ['id']

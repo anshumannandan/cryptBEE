@@ -1,5 +1,5 @@
 from django.db.models.base import Model
-from django.db.models.fields import FloatField, CharField, URLField, TextField
+from django.db.models.fields import FloatField, CharField, URLField, TextField, DateTimeField
 from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from Authentication.models import User
@@ -9,16 +9,16 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import string    
 import random
+import datetime
 
 
 class Coin(Model):
-    Name = CharField(max_length=10, unique=True)
-    FullName = CharField(max_length=100, unique=True)
+    Name = CharField(max_length=10, unique=True, null=True, blank=True)
+    FullName = CharField(max_length=100, unique=True, null=True, blank=True)
     Price = FloatField(null=True, blank=True)
-    lastPrice = FloatField(null=True, blank=True)
     ChangePct = FloatField(null=True, blank=True)
-    Image = URLField()
-    Description = TextField()
+    Image = URLField(null=True, blank=True)
+    Description = TextField(null=True, blank=True)
 
     def __str__(self):
         return '%s : %s' % (self.Name, self.Price)
@@ -39,9 +39,10 @@ def create_referal_code(sender, instance, created, **kwargs):
         MyHoldings.objects.create(user =instance. user,  MyHoldings = [])
         TransactionHistory.objects.create(user = instance.user, transactions = [])
 
+
 class Wallet(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='wallet')
-    amount = FloatField(default=1000)
+    amount = FloatField(default=10000)
     referal = CharField(max_length=6, null=True, blank=True)
 
 @receiver(post_save, sender=Wallet)
@@ -54,9 +55,34 @@ def make_referal_code(sender, instance, created, **kwargs):
 
 class MyHoldings(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='my_holdings')
-    MyHoldings = ArrayField(ArrayField(CharField(max_length=20, blank=True), size = 2), blank=True)
+    MyHoldings = ArrayField(ArrayField(CharField(max_length=20, blank=True), size = 3), blank=True)
 
 
 class TransactionHistory(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='transactions')
     transactions = ArrayField(CharField(max_length=255, blank=True), null = True, blank = True)
+
+
+class MyWatchlist(Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name='watchlist')
+    watchlist = ArrayField(CharField(max_length=10, blank=True), null = True, blank = True)
+
+
+class News(Model):
+    headline = CharField(max_length=255)
+    news = URLField()
+    image = URLField()
+
+
+class BuyLock(Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name='buy')
+    coin = CharField(max_length=10)
+    price = FloatField()
+    time = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))
+
+
+class SellLock(Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name='sell')
+    coin = CharField(max_length=10)
+    price = FloatField()
+    time = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))
