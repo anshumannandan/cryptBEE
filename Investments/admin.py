@@ -19,7 +19,7 @@ class WalletAdmin(ModelAdmin):
 
 class MyHoldingsAdmin(ModelAdmin, DynamicArrayMixin):
     formfield_overrides = {
-        ArrayField: {'widget': DynamicArrayTextareaWidget(attrs={'rows':1, 'cols':30})},
+        ArrayField: {'widget': DynamicArrayTextareaWidget(attrs={'rows':1, 'cols':70})},
     }
     list_display = ['user']
 

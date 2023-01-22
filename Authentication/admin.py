@@ -11,12 +11,12 @@ class UserAdmin(BaseUserAdmin):
     filter_horizontal = ()
     fieldsets = (
         ('User Credentials', {'fields': ('email', 'password')}),
-        ('Personal Info', {'fields': ('name',)}),
+        ('Personal Info', {'fields': ('name','profile_picture')}),
         ('Permissions', {'fields': ('is_superuser', 'is_staff',)}),
     )
     add_fieldsets = (
         ('User Credentials', {'fields': ('email', 'password1', 'password2')}),
-        ('Personal Info', {'fields': ( 'name',)}),
+        ('Personal Info', {'fields': ( 'name','profile_picture')}),
         ('Permissions', {'fields': ('is_superuser', 'is_staff',)}),
     )
 

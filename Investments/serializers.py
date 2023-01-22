@@ -34,7 +34,7 @@ class BuyCoinSerializer(Serializer):
         if data['buy_amount'] < 1:
             raise CustomError("Invalid amount, you need to spend atleast INR 1")
 
-        if not ( data['price'] == coin[0].Price or data['price'] == coin[0].lastPrice ):
+        if not ( data['price'] == coin[0].Price):
             raise CustomError("Invalid Price", code=status.HTTP_403_FORBIDDEN)
 
         data['coin'] = coin[0]
@@ -58,7 +58,7 @@ class BuyCoinSerializer(Serializer):
         obj.save()
 
         obj = validated_data['user'].my_holdings
-        update_my_holdings(obj, coinname, number_of_coins)
+        update_my_holdings(obj, coinname, number_of_coins, price)
 
         return {'message' : [f'{number_of_coins} {coinname} added to your holdings']}
 
@@ -124,6 +124,13 @@ class MyHoldingsSerializer(ModelSerializer):
     class Meta:
         model = MyHoldings
         fields = ['MyHoldings']
+
+    def to_representation(self, instance):
+        response = []
+        for holding in instance.MyHoldings:
+            coin = Coin.objects.get(Name = holding[0])
+            response.append([coin.Name, coin.Image, holding[1], holding[2]])
+        return {"MyHoldings" : response}
 
 
 class MyWatchlistSerializer(ModelSerializer):

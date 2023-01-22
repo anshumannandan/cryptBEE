@@ -317,3 +317,10 @@ class ChangePasswordSerializer(ModelSerializer):
 
 #     def create(self, validated_data):
 #         return super().create(validated_data)
+
+
+class ProfilePictureSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['profile_picture']
+        extra_kwargs = {'profile_picture': {'required': True}}

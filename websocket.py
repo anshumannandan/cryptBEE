@@ -54,6 +54,12 @@ async def handler(websocket):
     connected.remove(websocket)
     if len(connected) == 0:
         await RemoveFromCeleryBeat()
+    await websocket.send('authorised, enter ALL or name of the coin')
+    # req = await websocket.recv()
+    # if req == 'ALL':
+    #     await socket(websocket)
+    # else:
+    #     return
 
 
 async def authorise(websocket):
