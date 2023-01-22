@@ -70,51 +70,24 @@ class ChangePasswordSerializer(ModelSerializer):
         return {'message':['Password changed successfully']}
 
 
-# class EnableTwoFactorSerializer(Serializer):
-#     otp = IntegerField(default = None, write_only=True)
+class EnableTwoFactorSerializer(ModelSerializer):
+    class Meta:
+        model = Two_Factor_Verification
+        fields = ['enabled']
+ 
+    def validate(self, instance):
+        try:
+            obj = self.context['request'].user.twofactor
+        except:
+            raise CustomError('Two Factor Verification not enabled for this account')
+        if obj.verified:
+            return {'do' : True}
+        raise CustomError('Two Factor Verification not verified for this account')
 
-#     class Meta:
-#         model = Two_Factor_Verification
-#         fields = ['phone_number', 'otp']
-#         extra_kwargs = {'phone_number': {'default': None, 'write_only': True}}
-
-    # def validate(self, data):
-    #     user = self.context['request'].user
-
-    #     try:
-    #         obj = user.twofactor
-    #         data['create new'] = False
-    #         data['obj'] = obj
-    #     except:
-    #         data['create new'] = True
-    #         print(data, self.model) 
-
-    #         if data['phone_number'] is None:
-    #             raise CustomError("phone_number is required")
-    #         return data
-
-    #     if obj.verified:
-    #         return data
-
-    #     if data['otp'] is None or data['phone_number'] is None:
-    #         raise CustomError("phone_number and otp are required")
-
-
-    #     return data
-
-    # def create(self, validated_data):
-    #     if validated_data['create new']:
-    #         obj = self.model.objects.create(
-    #             user = self.context['request'].user,
-    #             phone_number = validated_data['phone_number']
-    #         )
-    #         send_two_factor_otp(obj)
-
-    #     obj = validated_data['obj']
-    #     obj.enabled = True
-    #     obj.verified = True
-    #     obj.save()
-    #     return validated_data
+    def update(self, instance, validated_data):
+        if validated_data['do']:
+            instance.enabled = True
+        return super().update(instance, validated_data)
 
 
 class DisableTwoFactorSerializer(ModelSerializer):
@@ -123,9 +96,8 @@ class DisableTwoFactorSerializer(ModelSerializer):
         fields = ['enabled']
  
     def validate(self, instance):
-        user = self.context['request'].user
         try:
-            user.twofactor
+            self.context['request'].user.twofactor
         except:
             raise CustomError('Two Factor Verification not enabled for this account')
         return {}

@@ -23,14 +23,15 @@ class ChangePasswordView(UpdateAPIView):
         return self.request.user
 
 
-# class EnableTwoFactorView(CreateAPIView):
-#     permission_classes = [IsAuthenticated]
+class EnableTwoFactorView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EnableTwoFactorSerializer
 
-#     def post(self, request, *args, **kwargs):
-#         serializer = EnableTwoFactorSerializer(data = request.data, context={'request': request})
-#         serializer.is_valid(raise_exception=True)
-#         serializer.create(serializer.validated_data)
-#         return Response({'message' : ['Two Factor Verification Enabled']}, status=status.HTTP_202_ACCEPTED)
+    def get_object(self):
+        try:
+            return self.request.user.twofactor
+        except:
+            pass
 
 
 class DisableTwoFactorView(RetrieveUpdateDestroyAPIView):
@@ -42,6 +43,11 @@ class DisableTwoFactorView(RetrieveUpdateDestroyAPIView):
             return self.request.user.twofactor
         except:
             pass
+
+    def delete(self, request, *args, **kwargs):
+        if self.get_object() is None:
+            raise CustomError('Two Factor Verification not enabled for this account')
+        return super().delete(request, *args, **kwargs)
 
 
 class ProfilePictureView(RetrieveUpdateDestroyAPIView):
