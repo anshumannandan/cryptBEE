@@ -61,8 +61,8 @@ def particular_holdings_data(user, reqd_coin):
 
 async def socket(websocket, user):
     try:
-        coins = Coin.objects.all()
         while True:
+            coins = Coin.objects.all()
             data = []
             async for coin in coins:
                 data.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
@@ -73,9 +73,10 @@ async def socket(websocket, user):
         return
 
 
-async def single_socket(websocket, user, coin):
+async def single_socket(websocket, user, req):
     try:
         while True:
+            coin = get_coin(req)
             data = {'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image}
             holdings = await particular_holdings_data(user, coin)
             await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
@@ -93,15 +94,10 @@ def get_coin(name):
 
 
 async def handler(websocket, user):
-    # global connected
-    # connected.add(websocket)
-    # if len(connected) == 1:
-    #     await AddToCeleryBeat()
-    # await socket(websocket, user)
-    # connected.remove(websocket)
-    # if len(connected) == 0:
-    #     await RemoveFromCeleryBeat()
-    await websocket.send('authorised, enter ALL or name of the coin')
+    global connected
+    connected.add(websocket)
+    if len(connected) == 1:
+        await AddToCeleryBeat()
     req = await websocket.recv()
     if req == 'ALL':
         await socket(websocket, user)
@@ -109,7 +105,11 @@ async def handler(websocket, user):
         coin = await get_coin(req)
         if not coin:
             await websocket.send('invalid request')
-        await single_socket(websocket, user, coin)
+        await single_socket(websocket, user, req)
+    connected.remove(websocket)
+    if len(connected) == 0:
+        await RemoveFromCeleryBeat()
+    await websocket.send('authorised, enter ALL or name of the coin')
 
 
 

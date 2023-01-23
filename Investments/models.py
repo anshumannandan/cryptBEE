@@ -1,9 +1,8 @@
 from django.db.models.base import Model
-from django.db.models.fields import FloatField, CharField, URLField, TextField, DateTimeField
+from django.db.models.fields import FloatField, CharField, URLField, TextField
 from django.db.models.fields.related import OneToOneField
 from django.db.models import CASCADE
 from django_better_admin_arrayfield.models.fields import ArrayField
-import datetime
 from Authentication.models import User
 
 
@@ -41,17 +40,3 @@ class News(Model):
     headline = CharField(max_length=255)
     news = URLField()
     image = URLField()
-
-
-class BuyLock(Model):
-    user = OneToOneField(User, on_delete=CASCADE, related_name='buy')
-    coin = CharField(max_length=10)
-    price = FloatField()
-    time = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))
-
-
-class SellLock(Model):
-    user = OneToOneField(User, on_delete=CASCADE, related_name='sell')
-    coin = CharField(max_length=10)
-    price = FloatField()
-    time = DateTimeField(default=datetime.datetime(1000, 1, 1, 0, 0, 0))

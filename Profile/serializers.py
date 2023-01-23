@@ -96,23 +96,26 @@ class NewTwoFactorSerializer(Serializer):
         send_two_factor_otp(obj)
 
 
-class VerifyNewTwoFactorOTPSerializer(ModelSerializer):
-
-    class Meta:
-        model = Two_Factor_OTP
-        fields = '__all__'
+class OTPNewTwoFactorSerializer(Serializer):
+    otp = IntegerField(max_value = 9999, min_value = 1000)
 
     def validate(self, data):
-        user = User.objects.filter(email = normalize_email(data['email']))
-        if not user.exists():
-            raise CustomError('User not registered')
-        user = user[0]
-        response = validateOTP(user, data['otp'], twofactoron = True)
-        if response == 'OK':
-            data['refresh'] = user.refresh
-            data['access'] = user.access
-            return data
-        raise CustomError(response)
+        user = self.context['request'].user
+        data['obj'] = self.instance
+        response = validateOTP(user, data['otp'], twofactoron=True)
+        if response is not 'OK':
+            raise CustomError(response)
+        return data
+
+    def update(self, instance, validated_data):
+        obj = validated_data['obj'].phone_number
+        obj.verified = True
+        obj.enabled = True
+        obj.save()
+        return {}
+
+    def to_representation(self, instance):
+        return {'message' : ['Two Factor Verification Enabled for this account']}
 
 
 class EnableTwoFactorSerializer(ModelSerializer):
