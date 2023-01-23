@@ -53,3 +53,15 @@ class NEWSView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = NEWSSerializer
     queryset = News.objects.all()
+
+
+class CoinDetailsView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CoinSerializer
+
+    def get_object(self):
+        coin = self.request.GET.get("coin")
+        try:
+            return Coin.objects.get(Name = coin)
+        except:
+            raise CustomError("Invalid Coin Requested")
