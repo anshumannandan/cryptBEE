@@ -9,4 +9,6 @@ urlpatterns = [
     path('mywatchlist/', MyWatchlistView.as_view()),
     path('news/', NEWSView.as_view()),
     path('coindetails/', CoinDetailsView.as_view()),
+    path('transactions/', TransactionsView.as_view()),
+    path('inwatchlist/', InWatchlistView.as_view()),
 ]

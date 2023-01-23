@@ -39,7 +39,7 @@ def holdings_data(user):
     try:
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
-            holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1], "Price" : holding[2]})
+            holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1]})
     except:
         pass
     return holdings
@@ -52,30 +52,44 @@ def particular_holdings_data(user, reqd_coin):
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
             if reqd_coin == coin:
-                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1], "Price" : holding[2]})
+                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1]})
                 break
     except:
         pass
     return holdings
 
 
+@sync_to_async
+def watchlist_data(user):
+    watchlist = []
+    try:
+        for watch in user.watchlist.watchlist:
+            coin = Coin.objects.get(Name = watch)
+            watchlist.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
+    except:
+        pass
+    return watchlist
+
+
 async def socket(websocket, user):
     try:
-        coins = Coin.objects.all()
         while True:
+            coins = Coin.objects.all()
             data = []
             async for coin in coins:
                 data.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
             holdings = await holdings_data(user)
-            await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
+            watchlist = await watchlist_data(user)
+            await websocket.send(json.dumps({'data': data, 'holdings' : holdings, 'watchlist' : watchlist}))
             await asyncio.sleep(10)
     except websockets.ConnectionClosedOK:
         return
 
 
-async def single_socket(websocket, user, coin):
+async def single_socket(websocket, user, req):
     try:
         while True:
+            coin = await get_coin(req)
             data = {'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image}
             holdings = await particular_holdings_data(user, coin)
             await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
@@ -93,14 +107,10 @@ def get_coin(name):
 
 
 async def handler(websocket, user):
-    # global connected
-    # connected.add(websocket)
-    # if len(connected) == 1:
-    #     await AddToCeleryBeat()
-    # await socket(websocket, user)
-    # connected.remove(websocket)
-    # if len(connected) == 0:
-    #     await RemoveFromCeleryBeat()
+    global connected
+    connected.add(websocket)
+    if len(connected) == 1:
+        await AddToCeleryBeat()
     await websocket.send('authorised, enter ALL or name of the coin')
     req = await websocket.recv()
     if req == 'ALL':
@@ -109,8 +119,10 @@ async def handler(websocket, user):
         coin = await get_coin(req)
         if not coin:
             await websocket.send('invalid request')
-        await single_socket(websocket, user, coin)
-
+        await single_socket(websocket, user, req)
+    connected.remove(websocket)
+    if len(connected) == 0:
+        await RemoveFromCeleryBeat()
 
 
 @sync_to_async

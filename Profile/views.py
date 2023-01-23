@@ -35,13 +35,13 @@ class NewTwoFactorView(CreateAPIView):
 
 class OTPNewTwoFactorView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = VerifyNewTwoFactorOTPSerializer
+    serializer_class = OTPNewTwoFactorSerializer
 
     def get_object(self):
         try:
-            return self.request.user.twofactor
+            return self.request.user.twofactor.twofactorotp
         except:
-            pass
+            raise CustomError('raise an OTP first')
 
 
 class EnableTwoFactorView(UpdateAPIView):

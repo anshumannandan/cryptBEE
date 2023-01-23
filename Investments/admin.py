@@ -34,18 +34,8 @@ class NewsAdmin(ModelAdmin):
     list_display = ['headline']
 
 
-class BuyAdmin(ModelAdmin):
-    list_display = ['user', 'coin', 'price']
-
-
-class SellAdmin(ModelAdmin):
-    list_display = ['user', 'coin', 'price']
-
-
 admin.site.register(Coin, CoinAdmin)
 admin.site.register(MyHoldings, MyHoldingsAdmin)
 admin.site.register(TransactionHistory, TransactionHistoryAdmin)
 admin.site.register(MyWatchlist, MyWatchlistAdmin)
 admin.site.register(News, NewsAdmin)
-admin.site.register(BuyLock, BuyAdmin)
-admin.site.register(SellLock, SellAdmin)

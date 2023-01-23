@@ -65,3 +65,30 @@ class CoinDetailsView(RetrieveAPIView):
             return Coin.objects.get(Name = coin)
         except:
             raise CustomError("Invalid Coin Requested")
+
+
+class TransactionsView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TransactionsSerializer
+
+    def get_object(self):
+        try:
+            return TransactionHistory.objects.get(user = self.request.user)
+        except:
+            return []
+
+
+class InWatchlistView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        coin = request.GET.get("coin")
+        try:
+            coin = Coin.objects.get(Name = coin)
+        except:
+            raise CustomError("Invalid Coin Requested")
+        boool = False
+        obj = MyWatchlist.objects.get_or_create(user = request.user)
+        if coin.Name in obj[0].watchlist:
+            boool = True
+        return Response({'present' : boool})

@@ -27,8 +27,8 @@ def update_coins(self):
         data.update(result)
     for coin in coins:
         coindata = data[coin.Name]['RAW'][coin.Name]['INR']
-        coin.Price = coindata['PRICE']
-        coin.ChangePct = coindata['CHANGEPCTHOUR']
+        coin.Price = round(coindata['PRICE'], 8)
+        coin.ChangePct = round(coindata['CHANGEPCTHOUR'], 8)
         coin.save()
     # coinslist = web_scrap_coins()
     # for coin in coinslist:
