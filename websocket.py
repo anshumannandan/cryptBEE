@@ -7,8 +7,8 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 import jwt
 
-import logging
-logging.basicConfig(format="%(message)s", level=logging.DEBUG)
+# import logging
+# logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cryptBEE.settings')
 django.setup()
@@ -39,7 +39,7 @@ def holdings_data(user):
     try:
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
-            holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1]})
+            holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "Price": coin.Price,"ImageURL" : coin.Image, "Coins" : holding[1]})
     except:
         pass
     return holdings
@@ -52,7 +52,7 @@ def particular_holdings_data(user, reqd_coin):
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
             if reqd_coin == coin:
-                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1]})
+                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "Price": coin.Price,"ImageURL" : coin.Image, "Coins" : holding[1]})
                 break
     except:
         pass
@@ -106,22 +106,55 @@ def get_coin(name):
         return False
 
 
+@sync_to_async
+def get_wallet_amount(user):
+    try:
+        return user.wallet.amount
+    except:
+        return 0
+
+
+@sync_to_async
+def get_holdings(user):
+    try:
+        return user.my_holdings.MyHoldings
+    except:
+        return []
+
+
+async def profit_socket(websocket, user):
+    try:
+        while True:
+            wallet = await get_wallet_amount(user)
+            holdings_list = await get_holdings(user)
+            holdings_value = 0
+            for holding in holdings_list:
+                curcoin = await get_coin(holding[0])
+                holdings_value += round((float(holding[1]) * curcoin.Price), 8)
+            await websocket.send(json.dumps({'wallet': wallet, 'holdings_value' : holdings_value, 'total' : wallet+holdings_value}))
+            await asyncio.sleep(10)
+    except websockets.ConnectionClosedOK:
+        return
+
+
 async def handler(websocket, user):
-    global connected
-    connected.add(websocket)
-    if len(connected) == 1:
+    await websocket.send('authorised, enter ALL or name of the coin ,PROFIT to get current holdings')
+    global connections
+    connections += 1
+    if connections == 1:
         await AddToCeleryBeat()
-    await websocket.send('authorised, enter ALL or name of the coin')
     req = await websocket.recv()
     if req == 'ALL':
         await socket(websocket, user)
+    elif req == 'PROFIT':
+        await profit_socket(websocket, user)
     else:
         coin = await get_coin(req)
         if not coin:
             await websocket.send('invalid request')
         await single_socket(websocket, user, req)
-    connected.remove(websocket)
-    if len(connected) == 0:
+    connections -= 1
+    if connections == 0:
         await RemoveFromCeleryBeat()
 
 
@@ -147,5 +180,5 @@ async def main():
         await asyncio.Future()
 
 
-connected = set()
+connections = 0
 asyncio.run(main())
