@@ -23,6 +23,27 @@ class ChangePasswordView(UpdateAPIView):
         return self.request.user
 
 
+class NewTwoFactorView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = NewTwoFactorSerializer(data = request.data, context = {'request' : request})
+        serializer.is_valid(raise_exception=True)
+        serializer.create(serializer.validated_data)
+        return Response({'message' : ['OTP sent on your phone number']}, status=status.HTTP_201_CREATED)
+
+
+class OTPNewTwoFactorView(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = VerifyNewTwoFactorOTPSerializer
+
+    def get_object(self):
+        try:
+            return self.request.user.twofactor
+        except:
+            pass
+
+
 class EnableTwoFactorView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EnableTwoFactorSerializer

@@ -1,9 +1,10 @@
-from rest_framework.serializers import ModelSerializer, EmailField, CharField, IntegerField
-from Authentication.models import User, Two_Factor_Verification
+from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, IntegerField
+from Authentication.models import User, Two_Factor_Verification, Two_Factor_OTP
 from Authentication.utils import CustomError, normalize_email, validatePASS
 from django.contrib.auth.hashers import make_password, check_password
 from .models import PAN_Verification
 from rest_framework import status
+from Authentication.utils import resend_otp, validateOTP, send_two_factor_otp
 
 
 class VerifyPANSerializer(ModelSerializer):
@@ -70,11 +71,55 @@ class ChangePasswordSerializer(ModelSerializer):
         return {'message':['Password changed successfully']}
 
 
+class NewTwoFactorSerializer(Serializer):
+    phone_number = IntegerField(max_value = 9999999999, min_value = 1000000000)
+
+    def validate(self, data):
+        user = self.context['request'].user
+        try:
+            obj = user.twofactor
+        except:
+            if Two_Factor_Verification.objects.filter(phone_number = data['phone_number']).exists():
+                raise CustomError('Phone number already in use', code = status.HTTP_226_IM_USED)
+            data['user'] = user
+        else:
+            if obj.verified:
+                raise CustomError('Two Factor verification already exists for this account', code = status.HTTP_409_CONFLICT)
+            raise CustomError('Verify your phone number to enable two factor verification', code = status.HTTP_403_FORBIDDEN)
+        return data
+
+    def create(self, validated_data):
+        obj = Two_Factor_Verification.objects.create(
+            user = validated_data['user'],
+            phone_number = validated_data['phone_number']
+        )
+        send_two_factor_otp(obj)
+
+
+class VerifyNewTwoFactorOTPSerializer(ModelSerializer):
+
+    class Meta:
+        model = Two_Factor_OTP
+        fields = '__all__'
+
+    def validate(self, data):
+        user = User.objects.filter(email = normalize_email(data['email']))
+        if not user.exists():
+            raise CustomError('User not registered')
+        user = user[0]
+        response = validateOTP(user, data['otp'], twofactoron = True)
+        if response == 'OK':
+            data['refresh'] = user.refresh
+            data['access'] = user.access
+            return data
+        raise CustomError(response)
+
+
 class EnableTwoFactorSerializer(ModelSerializer):
     class Meta:
         model = Two_Factor_Verification
         fields = ['enabled']
- 
+
     def validate(self, instance):
         try:
             obj = self.context['request'].user.twofactor
