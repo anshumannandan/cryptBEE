@@ -39,7 +39,7 @@ def holdings_data(user):
     try:
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
-            holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1], "Price" : holding[2]})
+            holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1]})
     except:
         pass
     return holdings
@@ -52,7 +52,7 @@ def particular_holdings_data(user, reqd_coin):
         for holding in user.my_holdings.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
             if reqd_coin == coin:
-                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1], "Price" : holding[2]})
+                holdings.append({"Name" : coin.Name, "FullName": coin.FullName, "ImageURL" : coin.Image, "Coins" : holding[1]})
                 break
     except:
         pass
@@ -76,7 +76,7 @@ async def socket(websocket, user):
 async def single_socket(websocket, user, req):
     try:
         while True:
-            coin = get_coin(req)
+            coin = await get_coin(req)
             data = {'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image}
             holdings = await particular_holdings_data(user, coin)
             await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
@@ -98,6 +98,7 @@ async def handler(websocket, user):
     connected.add(websocket)
     if len(connected) == 1:
         await AddToCeleryBeat()
+    await websocket.send('authorised, enter ALL or name of the coin')
     req = await websocket.recv()
     if req == 'ALL':
         await socket(websocket, user)
@@ -109,8 +110,6 @@ async def handler(websocket, user):
     connected.remove(websocket)
     if len(connected) == 0:
         await RemoveFromCeleryBeat()
-    await websocket.send('authorised, enter ALL or name of the coin')
-
 
 
 @sync_to_async

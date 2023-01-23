@@ -7,12 +7,12 @@ from Authentication.models import User
 
 
 class Coin(Model):
-    Name = CharField(max_length=10, unique=True, null=True, blank=True)
-    FullName = CharField(max_length=100, unique=True, null=True, blank=True)
+    Name = CharField(max_length=10, unique=True)
+    FullName = CharField(max_length=100, unique=True)
     Price = FloatField(null=True, blank=True)
     ChangePct = FloatField(null=True, blank=True)
-    Image = URLField(null=True, blank=True)
-    Description = TextField(null=True, blank=True)
+    Image = URLField()
+    Description = TextField()
 
     def __str__(self):
         return '%s : %s' % (self.Name, self.Price)

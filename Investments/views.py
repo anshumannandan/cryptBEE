@@ -65,3 +65,14 @@ class CoinDetailsView(RetrieveAPIView):
             return Coin.objects.get(Name = coin)
         except:
             raise CustomError("Invalid Coin Requested")
+
+
+class TransactionsView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TransactionsSerializer
+
+    def get_object(self):
+        try:
+            return TransactionHistory.objects.get(user = self.request.user)
+        except:
+            return []

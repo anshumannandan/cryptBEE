@@ -4,10 +4,8 @@ from .utils import *
 from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
-import time
 
 datee = lambda : date.today().strftime("%B %d; %Y")
-timee = lambda : time.strftime("%H:%M:%S")
 
 
 class BuyCoinSerializer(Serializer):
@@ -54,11 +52,11 @@ class BuyCoinSerializer(Serializer):
 
         obj = validated_data['user'].transactions
         obj.transactions.append(
-            f' Bought {number_of_coins} {coinname} on {datee()} at {timee()} at price {price}')
+            f'Bought_{number_of_coins}_{coinname}_on_{datee()}_at_price_{price}')
         obj.save()
 
         obj = validated_data['user'].my_holdings
-        update_my_holdings(obj, coinname, number_of_coins, price)
+        update_my_holdings(obj, coinname, number_of_coins)
 
         return {'message' : [f'{number_of_coins} {coinname} added to your holdings']}
 
@@ -111,7 +109,7 @@ class SellCoinSerializer(Serializer):
 
         obj = validated_data['user'].transactions
         obj.transactions.append(
-            f' Sold {number_of_coins} {coinname} on {datee()} at {timee()} at price {price}')
+            f'Sold_{number_of_coins}_{coinname}_on_{datee()}_at_price_{price}')
         obj.save()
 
         obj = validated_data['holdings']
@@ -176,3 +174,9 @@ class CoinSerializer(ModelSerializer):
     class Meta:
         model = Coin
         exclude = ['id']
+
+
+class TransactionsSerializer(ModelSerializer):
+    class Meta:
+        model = TransactionHistory
+        fields = ['transactions']
