@@ -59,6 +59,18 @@ def particular_holdings_data(user, reqd_coin):
     return holdings
 
 
+@sync_to_async
+def watchlist_data(user):
+    watchlist = []
+    try:
+        for watch in user.watchlist.watchlist:
+            coin = Coin.objects.get(Name = watch)
+            watchlist.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
+    except:
+        pass
+    return watchlist
+
+
 async def socket(websocket, user):
     try:
         while True:
@@ -67,7 +79,8 @@ async def socket(websocket, user):
             async for coin in coins:
                 data.append({'Name': coin.Name, 'FullName' : coin.FullName, 'Price': coin.Price, 'ChangePct': coin.ChangePct, 'ImageURL': coin.Image})
             holdings = await holdings_data(user)
-            await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
+            watchlist = await watchlist_data(user)
+            await websocket.send(json.dumps({'data': data, 'holdings' : holdings, 'watchlist' : watchlist}))
             await asyncio.sleep(10)
     except websockets.ConnectionClosedOK:
         return

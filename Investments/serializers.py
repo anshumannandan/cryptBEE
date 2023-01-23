@@ -11,7 +11,6 @@ datee = lambda : date.today().strftime("%B %d; %Y")
 class BuyCoinSerializer(Serializer):
     coin_name = CharField(write_only = True)
     buy_amount = FloatField(write_only = True)
-    price = FloatField(write_only = True)
 
     def validate(self, data):
         user = self.context['request'].user
@@ -32,23 +31,20 @@ class BuyCoinSerializer(Serializer):
         if data['buy_amount'] < 1:
             raise CustomError("Invalid amount, you need to spend atleast INR 1")
 
-        if not ( data['price'] == coin[0].Price):
-            raise CustomError("Invalid Price", code=status.HTTP_403_FORBIDDEN)
-
         data['coin'] = coin[0]
         data['user'] = user
         data['wallet'] = wallet
         return data
 
     def create(self, validated_data):
-        price = validated_data['price']
+        price = validated_data['coin'].Price
         coinname = validated_data['coin_name']
-        amount = validated_data['buy_amount']
+        amount = round(validated_data['buy_amount'], 8)
 
         validated_data['wallet'].amount -= amount
         validated_data['wallet'].save()
 
-        number_of_coins = amount / price
+        number_of_coins = round( amount / price , 8)
 
         obj = validated_data['user'].transactions
         obj.transactions.append(
@@ -64,7 +60,6 @@ class BuyCoinSerializer(Serializer):
 class SellCoinSerializer(Serializer):
     coin_name = CharField(write_only = True)
     sell_quantity = FloatField(write_only = True)
-    price = FloatField(write_only = True)
 
     def validate(self, data):
         user = self.context['request'].user
@@ -89,18 +84,15 @@ class SellCoinSerializer(Serializer):
         if float(quantity) < data['sell_quantity']:
             raise CustomError("Not enough coins", code=status.HTTP_403_FORBIDDEN)
 
-        if not ( data['price'] == coin[0].Price or data['price'] == coin[0].lastPrice ):
-            raise CustomError("Invalid Price", code=status.HTTP_403_FORBIDDEN)
-
         data['coin'] = coin[0]
         data['user'] = user
         data['holdings'] = holdings
         return data
 
     def update(self, validated_data):
-        number_of_coins = validated_data['sell_quantity']
-        price = validated_data['price']
-        sell_amount = number_of_coins * price
+        number_of_coins = round(validated_data['sell_quantity'], 8)
+        price = validated_data['coin'].Price
+        sell_amount = round(number_of_coins * price, 8)
         coinname = validated_data['coin_name']
 
         obj = validated_data['user'].wallet

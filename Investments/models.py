@@ -33,7 +33,7 @@ class TransactionHistory(Model):
 
 class MyWatchlist(Model):
     user = OneToOneField(User, on_delete=CASCADE, related_name='watchlist')
-    watchlist = ArrayField(CharField(max_length=10, blank=True), null = True, blank = True)
+    watchlist = ArrayField(CharField(max_length=10, blank=True), default=list)
 
 
 class News(Model):

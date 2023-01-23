@@ -4,7 +4,7 @@ from Authentication.utils import CustomError, normalize_email, validatePASS
 from django.contrib.auth.hashers import make_password, check_password
 from .models import PAN_Verification
 from rest_framework import status
-from Authentication.utils import resend_otp, validateOTP, send_two_factor_otp
+from Authentication.utils import validateOTP, send_two_factor_otp
 
 
 class VerifyPANSerializer(ModelSerializer):

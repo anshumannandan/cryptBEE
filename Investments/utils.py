@@ -39,9 +39,9 @@ def update_my_holdings(obj, coinname, number_of_coins):
     for i in obj.MyHoldings:
         if i[0] == coinname:
             found = True
-            if float(i[1]) + number_of_coins == 0:
+            if round( float(i[1]) + number_of_coins, 8) == 0:
                 continue
-            updated_holdings.append([i[0], float(i[1]) + number_of_coins])
+            updated_holdings.append([i[0], round( float(i[1]) + number_of_coins, 8)])
         else:
             updated_holdings.append(i)
     if not found : 
