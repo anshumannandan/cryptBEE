@@ -8,4 +8,5 @@ urlpatterns = [
     path('myholdings/', GETMyHoldingsView.as_view()),
     path('mywatchlist/', MyWatchlistView.as_view()),
     path('news/', NEWSView.as_view()),
+    path('coindetails/', CoinDetailsView.as_view()),
 ]

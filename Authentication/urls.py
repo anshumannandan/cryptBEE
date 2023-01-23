@@ -13,9 +13,4 @@ urlpatterns = [
     path('sendemailLINK/', SendLINKEmailView.as_view()),
     path('verifyemailLINK/', VerifyLINKEmailView.as_view()),
     path('checkverification/', CheckVerificationView.as_view()),
-    path('verifyPAN/', VerifyPANView.as_view()),
-    path('changepassword/', ChangePasswordView.as_view()),
-    # path('enabletwofactor/', EnableTwoFactorView.as_view()),
-    # path('disabletwofactor/', DisableTwoFactorView.as_view()),
-    path('profile_picture/', ProfilePictureView.as_view()),
 ]

@@ -1,6 +1,6 @@
 import cryptocompare
 from Authentication.utils import CustomError
-from .models import Coin, Wallet, MyHoldings, TransactionHistory
+from .models import Coin
 
 
 def update_coin_database():

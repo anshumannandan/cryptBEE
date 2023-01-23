@@ -170,3 +170,9 @@ class NEWSSerializer(ModelSerializer):
     class Meta:
         model = News
         exclude = ['id']
+
+
+class CoinSerializer(ModelSerializer):
+    class Meta:
+        model = Coin
+        exclude = ['id']

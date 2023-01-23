@@ -1,7 +1,6 @@
-from rest_framework.serializers import Serializer, ModelSerializer, EmailField, CharField, BooleanField, IntegerField, UUIDField
+from rest_framework.serializers import Serializer, EmailField, CharField, BooleanField, IntegerField, UUIDField
 from django.contrib.auth import authenticate
-from .models import Two_Factor_Verification, User
-from Investments.models import PAN_Verification
+from .models import User, Two_Factor_Verification
 from .utils import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password, check_password
@@ -13,8 +12,6 @@ class LoginSerializer(Serializer):
     two_factor = BooleanField(read_only = True)
     refresh = CharField(read_only = True)
     access = CharField(read_only = True)
-    pan_verify = BooleanField(read_only = True)
-    name = CharField(read_only = True)
 
     def validate(self,data):
         inemail = normalize_email(data['email'])
@@ -34,10 +31,6 @@ class LoginSerializer(Serializer):
             data['refresh'] = user.refresh
             data['access'] = user.access
             data['two_factor'] = False
-            data['pan_verify'] = False
-            if PAN_Verification.objects.filter(user = user).exists():
-                data['pan_verify'] = True
-            data['name'] = user.name
         return data
 
 
@@ -46,8 +39,6 @@ class VerifyTwoFactorOTPSerializer(Serializer):
     otp = IntegerField(write_only = True)
     refresh = CharField(read_only = True)
     access = CharField(read_only = True)
-    pan_verify = BooleanField(read_only = True)
-    name = CharField(read_only = True)
 
     def validate(self, data):
         user = User.objects.filter(email = normalize_email(data['email']))
@@ -58,10 +49,6 @@ class VerifyTwoFactorOTPSerializer(Serializer):
         if response == 'OK':
             data['refresh'] = user.refresh
             data['access'] = user.access
-            data['pan_verify'] = False
-            if PAN_Verification.objects.filter(user = user).exists():
-                data['pan_verify'] = True
-            data['name'] = user.name
             return data
         raise CustomError(response)
 
@@ -194,133 +181,3 @@ class CheckVerificationSerializer(Serializer):
             data['access'] = user.access
             object.delete()
         return data
-
-
-class VerifyPANSerializer(ModelSerializer):
-    email = EmailField()
-    name = CharField(required = False, allow_null = True, default = None)
-    
-    class Meta:
-        model = PAN_Verification
-        fields = ['email', 'pan_number', 'name']
-        extra_kwargs = {'pan_number': {'required': False, 'allow_null': True, 'default':None}}
-
-    def validate(self, data):
-        data['email'] = normalize_email(data['email'])
-        user = User.objects.filter(email = data['email'])
-        if user.exists():
-            if data['pan_number'] is None:
-                return data
-            if PAN_Verification.objects.filter(user = user[0]).exists():
-                raise CustomError('User already verified')
-            return data
-        raise CustomError('User not registered')
-    
-    def create(self, validated_data):
-        holder = User.objects.get(email = validated_data['email'])
-        if validated_data['pan_number'] is not None:
-            PAN_Verification(
-                user = holder,
-                pan_number = validated_data['pan_number']
-            ).save()
-
-        if validated_data['name'] is not None:
-            holder.name = validated_data['name']
-            holder.save()
-        return validated_data
-
-
-class ChangePasswordSerializer(ModelSerializer):
-    newpassword = CharField(max_length=128, write_only = True, required = True)
-
-    class Meta:
-        model = User
-        fields = ['password', 'newpassword']
-        extra_kwargs = {'password': {'required': True, 'write_only': True}}
-
-    def validate(self, data):
-        if not check_password(data['password'], self.instance.password):
-            raise CustomError("Incorrect previous password", code=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if check_password(data['newpassword'], self.instance.password):
-            raise CustomError("Password same as previous password", code=status.HTTP_406_NOT_ACCEPTABLE)
-
-        passresponse = validatePASS(data['newpassword'])
-        if not passresponse == 'OK':
-            raise CustomError(passresponse)
-
-        return data
-
-    def update(self, instance, validated_data):
-        instance.password = make_password(validated_data['newpassword'])
-        instance.save()
-        return validated_data
-
-    def to_representation(self, instance):
-        return {'message':['Password changed successfully']}
-
-
-# class EnableTwoFactorSerializer(Serializer):
-#     otp = IntegerField(default = None, write_only=True)
-
-#     class Meta:
-#         model = Two_Factor_Verification
-#         fields = ['phone_number', 'otp']
-#         extra_kwargs = {'phone_number': {'default': None, 'write_only': True}}
-
-#     def validate(self, data):
-#         user = self.context['request'].user
-
-#         try:
-#             obj = user.twofactor
-#             data['create new'] = False
-#             data['obj'] = obj
-#         except:
-#             data['create new'] = True
-#             print(data, self.model) 
-
-#             if data['phone_number'] is None:
-#                 raise CustomError("phone_number is required")
-#             return data
-
-#         if obj.verified:
-#             return data
-
-#         if data['otp'] is None or data['phone_number'] is None:
-#             raise CustomError("phone_number and otp are required")
-
-
-#         return data
-
-#     def create(self, validated_data):
-#         if validated_data['create new']:
-#             obj = self.model.objects.create(
-#                 user = self.context['request'].user,
-#                 phone_number = validated_data['phone_number']
-#             )
-#             send_two_factor_otp(obj)
-
-#         obj = validated_data['obj']
-#         obj.enabled = True
-#         obj.verified = True
-#         obj.save()
-#         return validated_data
-
-
-# class DisableTwoFactorSerializer(ModelSerializer):
-#     class Meta:
-#         model = Two_Factor_Verification
-#         fields = [' ']
- 
-#     def validate(self, attrs):
-#         return super().validate(attrs)
-
-#     def create(self, validated_data):
-#         return super().create(validated_data)
-
-
-class ProfilePictureSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['profile_picture']
-        extra_kwargs = {'profile_picture': {'required': True}}
