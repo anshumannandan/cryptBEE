@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.db.models.functions import Greatest
+from django.contrib.postgres.search import TrigramSimilarity
 
 
 class BuyCoinView(CreateAPIView):
@@ -92,3 +94,17 @@ class InWatchlistView(RetrieveAPIView):
         if coin.Name in obj[0].watchlist:
             boool = True
         return Response({'present' : boool})
+
+
+class SearchView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        search = request.GET.get("search")
+        coins = Coin.objects.annotate( similarity=Greatest(
+                TrigramSimilarity('Name', search), TrigramSimilarity('FullName', search)
+            )).filter(similarity__gte=0.3).order_by('-similarity')
+        result = {}
+        for coin in coins:
+            result.update({ coin.Name : coin.FullName})
+        return Response(result)

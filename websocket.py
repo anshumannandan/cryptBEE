@@ -139,12 +139,14 @@ async def profit_socket(websocket, user):
 
 async def handler(websocket, user):
     await websocket.send('authorised, enter ALL or name of the coin ,PROFIT to get current holdings')
+    req = await websocket.recv()
     global connections
     connections += 1
     if connections == 1:
         await AddToCeleryBeat()
-    req = await websocket.recv()
     if req == 'ALL':
+        await websocket.send('enter in format : ', json.dumps({'sorting' : 'Name, Price, ChangePct', 'order' : 'asc, dsc'}))
+        await websocket.recv()
         await socket(websocket, user)
     elif req == 'PROFIT':
         await profit_socket(websocket, user)
@@ -168,10 +170,10 @@ async def authorise(websocket):
     token = await websocket.recv()
     try: 
         tokenset = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user = await get_user(tokenset)
     except:
         await websocket.send('invalid token')
         return
-    user = await get_user(tokenset)
     await handler(websocket, user)
 
 
