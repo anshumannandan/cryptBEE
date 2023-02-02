@@ -119,7 +119,7 @@ class MyHoldingsSerializer(ModelSerializer):
         response = []
         for holding in instance.MyHoldings:
             coin = Coin.objects.get(Name = holding[0])
-            response.append([coin.Name, coin.Image, holding[1], holding[2]])
+            response.append([coin.Name, coin.Image, holding[1]])
         return {"MyHoldings" : response}
 
 
