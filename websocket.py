@@ -7,8 +7,8 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 import jwt
 
-# import logging
-# logging.basicConfig(format="%(message)s", level=logging.DEBUG)
+import logging
+logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cryptBEE.settings')
 django.setup()
@@ -82,7 +82,7 @@ async def socket(websocket, user):
             watchlist = await watchlist_data(user)
             await websocket.send(json.dumps({'data': data, 'holdings' : holdings, 'watchlist' : watchlist}))
             await asyncio.sleep(10)
-    except websockets.ConnectionClosedOK:
+    except:
         return
 
 
@@ -94,7 +94,7 @@ async def single_socket(websocket, user, req):
             holdings = await particular_holdings_data(user, coin)
             await websocket.send(json.dumps({'data': data, 'holdings' : holdings}))
             await asyncio.sleep(10)
-    except websockets.ConnectionClosedOK:
+    except:
         return
 
 
@@ -133,7 +133,7 @@ async def profit_socket(websocket, user):
                 holdings_value += round((float(holding[1]) * curcoin.Price), 8)
             await websocket.send(json.dumps({'wallet': wallet, 'holdings_value' : holdings_value, 'total' : wallet+holdings_value}))
             await asyncio.sleep(10)
-    except websockets.ConnectionClosedOK:
+    except:
         return
 
 
@@ -145,8 +145,8 @@ async def handler(websocket, user):
     if connections == 1:
         await AddToCeleryBeat()
     if req == 'ALL':
-        await websocket.send('enter in format : ', json.dumps({'sorting' : 'Name, Price, ChangePct', 'order' : 'asc, dsc'}))
-        await websocket.recv()
+        # await websocket.send('enter in format : ', json.dumps({'sorting' : 'Name, Price, ChangePct', 'order' : 'asc, dsc'}))
+        # await websocket.recv()
         await socket(websocket, user)
     elif req == 'PROFIT':
         await profit_socket(websocket, user)
