@@ -53,3 +53,20 @@ services:
       - db
       - web
       - redis
+
+  websocket:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: python3 websocket.py
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./.docker.env
+    depends_on:
+      - db
+      - web
+      - redis
+      - celery_worker
+      - celery_beat
