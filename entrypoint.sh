@@ -1,6 +1,7 @@
 #!/bin/sh
-python manage.py makemigrations
-python manage.py migrate
-python manage.py add_superuser
-python manage.py add_coins_to_db
-python manage.py collectstatic --noinput
+python3 manage.py wait_for_db
+python3 manage.py makemigrations --noinput
+python3 manage.py migrate --noinput
+python3 manage.py add_superuser 
+python3 manage.py add_coins_to_db
+python3 manage.py collectstatic --noinput
