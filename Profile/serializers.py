@@ -103,7 +103,7 @@ class OTPNewTwoFactorSerializer(Serializer):
         user = self.context['request'].user
         data['obj'] = self.instance
         response = validateOTP(user, data['otp'], twofactoron=True)
-        if response is not 'OK':
+        if response != 'OK':
             raise CustomError(response)
         return data
 
