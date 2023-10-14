@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', bool)
+DEBUG = bool(os.environ.get('DEBUG', 'True') == 'True')
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://crypt-bee.centralindia.cloudapp.azure.com/']
@@ -99,7 +99,6 @@ DATABASES = {
         'USER': os.environ.get('DATABASE_USER'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
         'HOST': os.environ.get('DATABASE_HOST'),
-        'PORT': os.environ.get('DATABASE_PORT'),
     }
 }
 
@@ -215,7 +214,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 #CELERY SETTINGS
 #celery -A cryptBEE.celery worker --pool=solo -l info
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://127.0.0.1:6379')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'

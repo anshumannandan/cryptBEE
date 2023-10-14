@@ -1,22 +1,26 @@
-# cryptBEE
+<h1 align="center">cryptBEE</h1>
 
 cryptBEE is a dummy trading crypto app made using Flutter for the frontend and Django for the backend. This repository contains the code for the backend part of the app. The frontend repository can be found [here](https://github.com/vaidic-dodwani/CryptbeeApp).
 
-## FEATURES
+
+<h2 align="center">Key Features</h2>
+
+CryptBEE offers essential features for cryptocurrency enthusiasts:
 
 - Email (SMTP) for Signup/Signin.
-- Twilio for Phone Number Verification using OTP.
-- Two-Factor Authentication (Enable/Disable).
-- JWT Authentication with complete integration of Refresh and Access tokens.
-- WebSockets for updating with data on frontend.
+- Two-Factor Authentication (2FA) with Enable/Disable through Phone Number utilizing Twilio.
+- JWT Authentication with Refresh and Access tokens.
+- Real-time WebSockets for updates.
 - Fetching real time cryptocurrency data through WebScrapping & 3rd party endpoints.
 - WebScrapping real time crypto NEWS.
 - Buy, Sell, Transaction History.
 - Dynamic Profit/Loss Calculator.
-- Celery and Celerybeat for background tasking (Sending Emails, SMS, Updating Coins information and NEWS in database).
-- Deployment on Azure Virtual Machine (Ubuntu 20.04).
+- Celery and Celerybeat for background tasking such as Sending Emails, SMS, Updating Coins information and NEWS in database.
+- Deployment on AWS EC2 instance.
+- Dockerized all the services (Backend, Celery, Celerybeat, Redis, PostgreSQL and Websocket).
 
-## PREVIEW
+
+<h2 align="center">PREVIEW</h2>
 
 <p align="center">
   <img src="https://i.imgur.com/1RbcPs7.gif" width="200" />  
@@ -38,41 +42,106 @@ cryptBEE is a dummy trading crypto app made using Flutter for the frontend and D
   <img src="https://i.imgur.com/Gs4qxBZ.png" width="150" />
 </p>
 
-## RUNNING THE SERVER
 
+<h2 align="center">Running CryptBEE with Docker Compose</h2>
 
-1. Clone the repository:
+Follow these steps to set up and run CryptBEE using Docker Compose:
 
-```CMD
+**Prerequisites:**
+
+- Make sure you have Docker and Docker Compose installed on your machine. If not, you can [install them here](https://docs.docker.com/compose/install/).
+
+**1. Clone the Repository:**
+
+Clone the CryptBEE repository to your local machine using the following command:
+
+```bash
 git clone https://github.com/anshumannandan/cryptBEE
 ```
-To run the server, you need to have Python installed on your machine. If you don't have it installed, you can follow the instructions [here](https://www.geeksforgeeks.org/download-and-install-python-3-latest-version/) to install it.
 
-2. Install & Create a virtual environment:
+**2. Navigate to the project directory:**
 
-```CMD
-pip install virtualenv
-virtualenv venv
-```
-3. Activate the virtual environment:
-```CMD
-venv/scripts/activate
-```
-
-4. Navigate to the project directory: 
-
-```CMD
+```bash
 cd cryptBEE
 ```
 
-5. Install the dependencies: 
+**3. Configure the Environment Variables:**
 
-```CMD
+Edit the docker.env file located in the project's root directory to customize the environment variables to your specific requirements.
+
+**4. Start the Containers:**
+
+Build and start the Docker containers using the following command:
+
+```bash
+docker-compose up --build
+```
+
+This command will pull necessary images, build all the services, and start the containers.
+
+**5. Access the CryptBEE Web:**
+
+Once the containers are up and running, you can access the CryptBEE application in your web browser using the following URLs:
+
+- **Backend:** [http://localhost:8000](http://localhost:8000)
+- **WebSocket:** [http://localhost:8001](http://localhost:8001)
+
+**Default Admin Credentials:**
+
+Use the following credentials to access the admin panel:
+
+- **Username:** admin@cryptbee.com
+- **Password:** cryptbee
+
+
+<h2 align="center">Setting Up CryptBEE on a Local Server</h2>
+
+Follow these steps to set up CryptBEE on your local server:
+
+**Prerequisites:**
+
+1. **Python:** Make sure you have Python installed on your machine. If not, you can [install it here](https://www.geeksforgeeks.org/download-and-install-python-3-latest-version/).
+
+2. **PostgreSQL:** Make sure you have PostgreSQL installed on your machine. If not, you can [install it here](https://www.postgresql.org/download/).
+
+3. **Redis:** Make sure you have Redis installed on your machine. If not, you can [install it here](https://redis.io/download).
+
+**Getting Started:**
+
+**1. Clone the Repository:**
+
+Clone the CryptBEE repository to your local machine using the following command:
+
+```bash
+git clone https://github.com/anshumannandan/cryptBEE
+```
+
+**2. Navigate to the project directory:**
+
+```bash
+cd cryptBEE
+```
+
+**3. Create and Activate a Virtual Environment:**
+
+```bash
+pip install virtualenv
+virtualenv venv
+venv/scripts/activate  # On Windows
+source venv/bin/activate  # On Linux and macOS
+```
+
+**4. Install the Dependencies:**
+
+```bash
 pip install -r requirements.txt
 ```
 
-6. Setup .env file in cryptBEE/cryptBEE and navigate back to base directory cryptBEE/:
-```
+**5. Configure the Environment Variables:**
+
+Create a .env file in the cryptBEE/cryptBEE directory and add the following environment variables to it:
+
+```env
 SECRET_KEY=
 DEBUG=
 
@@ -80,7 +149,6 @@ DATABASE_NAME=
 DATABASE_USER=
 DATABASE_PASSWORD=
 DATABASE_HOST=
-DATABASE_PORT=
 
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
@@ -92,58 +160,76 @@ EMAIL_HOST_PASSWORD=
 CRYPTOCOMPARE_API_KEY=
 ```
 
-7. Create a PostgreSQL database and connect it by entering credentials in .env file, once connected run the migrate command:
-```CMD
+**6. Create the Database:**
+
+Create a PostgreSQL database and connect to it by entering credentials in .env file, once connected run the migrate command:
+
+```bash
 python manage.py migrate
 ```
 
-8. You can create a superuser executing the following commands:
-```CMD
+**7. Create a Superuser:**
+
+**You can create a superuser account executing the following commands:**
+
+```bash
 python manage.py createsuperuer
 ```
-A prompt will appear asking for email followed by password. 
 
-9. Run the backend server on localhost:
+A prompt will appear asking for email followed by password.
 
-```CMD
+**Alternatively, you can create a superuser by using the following custom command:**
+
+```bash
+python manage.py add_superuser --email <email> --password <password>
+```
+
+**8. Run the Backend Server:**
+
+```bash
 python manage.py runserver
 ```
 
-You can access the endpoints from your web browser following this url:
-```url
-http://127.0.0.1:8000
-```
+**Access the endpoints in your web browaer:** http://127.0.0.1:8000
 
-To access the django admin panel follow this link and login through superuser credentials:
-```url
-http://127.0.0.1:8000/admin/
-```
+**Access the Django Admin Panel, go to:** http://127.0.0.1:8000/admin/
 
-10. Run websocket server on localhost (On a separate terminal with activated virtual environment):
+Use the superuser credentials to login.
 
-```CMD
+**9. Run the Websocket Server:**
+
+In a separate terminal with the virtual environment activated:
+
+```bash
 python websocket.py
 ```
 
-You can connect to websocket from your shell using this command:
-```CMD
+You can connect to the websocket from your shell using this command:
+
+```bash
 python -m websockets ws://localhost:8001/
 ```
 
-12. To run the celery worker, you need to have Redis installed on your machine. If you don't have it installed, you can download and install it from [here](https://github.com/tporadowski/redis/releases).
+**10. Run Celery Worker:**
 
-12. Run celery worker (On a separate terminal with activated virtual environment):
+In a separate terminal with the virtual environment activated:
 
-```CMD
-celery -A cryptBEE.celery worker --pool=solo -l info
+```bash
+celery -A cryptBEE worker --pool=solo -l info
 ```
 
-13. Run celerybeat (On a separate terminal with activated virtual environment):
+**11. Run Celery Beat:**
 
-```CMD
+In a separate terminal with the virtual environment activated:
+
+```bash
 celery -A cryptBEE beat -l info
 ```
 
-## FRONTEND CONTRIBUTOR
+These steps will get you up and running with the CryptBEE backend on your local machine.
 
-[Vaidic Dodwani](https://github.com/vaidic-dodwani) - Contributed to the frontend part of the app.
+
+<div align="center">
+  <h2>Frontend Contributor</h2>
+  <h4><a href="https://github.com/vaidic-dodwani">VAIDIC DODWANI</a></h4>
+</div>
