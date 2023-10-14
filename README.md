@@ -93,6 +93,15 @@ Use the following credentials to access the admin panel:
 - **Username:** admin@cryptbee.com
 - **Password:** cryptbee
 
+**Troubleshooting:**
+
+./entrypoint.sh not found
+
+- Open the `entrypoint.sh` file in a text editor.
+- Change the line ending sequence to LF (Line Feed). You can usually do this by configuring your text editor to save the file with LF line endings.
+- Save the changes to the `entrypoint.sh` file.
+- Rebuild the containers using the `docker-compose up --build` command.
+
 
 <h2 align="center">Setting Up CryptBEE on a Local Server</h2>
 

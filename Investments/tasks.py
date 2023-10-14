@@ -26,9 +26,13 @@ def update_coins(self):
         result = que.get()
         data.update(result)
     for coin in coins:
-        coindata = data[coin.Name]['RAW'][coin.Name]['INR']
-        coin.Price = round(coindata['PRICE'], 8)
-        coin.ChangePct = round(coindata['CHANGEPCTHOUR'], 8)
+        try:
+            coindata = data[coin.Name]['RAW'][coin.Name]['INR']
+            coin.Price = round(coindata['PRICE'], 8)
+            coin.ChangePct = round(coindata['CHANGEPCTHOUR'], 8)
+        except TypeError:
+            coin.Price = 0
+            coin.ChangePct = 0
         coin.save()
     # coinslist = web_scrap_coins()
     # for coin in coinslist:
