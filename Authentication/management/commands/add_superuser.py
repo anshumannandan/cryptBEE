@@ -9,10 +9,11 @@ class Command(BaseCommand):
     Arguments:
         email: email of the superuser (optional, default: admin@cryptbee.com)
         password: password of the superuser (optional, default: cryptbee)
-    
+
     Usage:
         python manage.py add_superuser --email <email> --password <password>
     """
+
     help = 'Create superuser with username and password'
 
     def handle(self, *args, **kwargs):
@@ -25,7 +26,7 @@ class Command(BaseCommand):
         if User.objects.filter(email=email).exists():
             self.stdout.write(self.style.ERROR('User with this email already exists'))
             return
-        
+
         # creating the superuser
         User.objects.create_superuser(email=email, password=password)
         self.stdout.write(
