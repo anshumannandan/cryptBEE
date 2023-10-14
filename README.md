@@ -84,7 +84,7 @@ This command will pull necessary images, build all the services, and start the c
 Once the containers are up and running, you can access the CryptBEE application in your web browser using the following URLs:
 
 - **Backend:** [http://localhost:8000](http://localhost:8000)
-- **WebSocket:** [http://localhost:8001](http://localhost:8001)
+- **WebSocket:** [ws://localhost:8001](ws://localhost:8001)
 
 **Default Admin Credentials:**
 
@@ -199,9 +199,9 @@ python manage.py add_superuser --email <email> --password <password>
 python manage.py runserver
 ```
 
-**Access the endpoints in your web browaer:** http://127.0.0.1:8000
+**Access the endpoints in your web browaer:** [http://localhost:8000](http://localhost:8000)
 
-**Access the Django Admin Panel, go to:** http://127.0.0.1:8000/admin/
+**Access the Django Admin Panel, go to:** [http://localhost:8000/admin](http://localhost:8000/admin)
 
 Use the superuser credentials to login.
 
