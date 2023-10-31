@@ -102,6 +102,13 @@ Use the following credentials to access the admin panel:
 - Save the changes to the `entrypoint.sh` file.
 - Rebuild the containers using the `docker-compose up --build` command.
 
+./entrypoint.sh: permission denied
+
+- Grant execute permissions to the `entrypoint.sh` file using the following command:
+
+```bash
+sudo chmod +x entrypoint.sh
+```
 
 <h2 align="center">Setting Up CryptBEE on a Local Server</h2>
 
